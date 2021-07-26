@@ -18,6 +18,24 @@ from sklearn import svm
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+#For CLIP feature generation
+import sys
+sys.path.append('./CLIP')
+import clip
+from tqdm import tqdm
+import gc
+#Defining needed variables and functions for clip
+input_resolution = 224
+import torch
+torch.cuda.empty_cache()
+from torch.utils.data import Dataset, DataLoader
+from torchvision.transforms import Compose, Resize, CenterCrop, FiveCrop, ToTensor, Normalize, Lambda, GaussianBlur
+import torchvision.transforms.functional as tf
+import torch.nn as nn
+#Defining device (gpu/cpu)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+from PIL import Image
+
 #Registering global lock
 lock = multiprocessing.Lock()
 
@@ -428,6 +446,225 @@ def generate_features_r2_histogram(dataset, pickle_file, grid_based, rotations, 
 		#Saving dataframe from features list just obtained
 		save_dataframe_from_features(features, grid_based, pickle_file)
 
+
+#################### CLIP feature generation ####################
+img_crops = []
+df_clip_final = []
+
+def load_clip_rn50():
+	model, _ = clip.load("RN50", device=device)
+	return model.encode_image, clip_normalization()
+
+def to_rgb(image):
+	return image.convert("RGB")
+
+init_preprocess_image = Compose(
+						[	
+						    to_rgb,
+							ToTensor(),
+						]
+					)
+
+def clip_normalization():
+	# SRC https://github.com/openai/CLIP/blob/e5347713f46ab8121aa81e610a68ea1d263b91b7/clip/clip.py#L73
+	return Normalize(
+		(0.48145466, 0.4578275, 0.40821073),
+		(0.26862954, 0.26130258, 0.27577711),
+	)
+
+def custom_pad(img):
+    if img.height > img.width:
+        h = round(max(img.height*0.5, img.width))
+        pl = np.abs(h-img.width)//2
+        pt = 0
+
+        pr = (h-img.width) - pt
+        pb = 0
+
+        pads = [pl, pt, pr, pb]
+        pads = [pad for pad in pads]
+
+        img = tf.pad(img, pads, 255)
+    else:
+        h = round(max(img.width*0.5, img.height))
+        pt = np.abs(h-img.height)//2
+        pl = 0
+
+        pb = (h-img.height) - pt
+        pr = 0
+
+        pads = [pl, pt, pr, pb]
+        pads = [pad for pad in pads]
+
+        img = tf.pad(img, pads, 255)
+    return img
+
+def custom_crop(image):
+    image_data = np.asarray(image)
+    image_data_bw = image_data
+    non_empty_columns = np.where(image_data_bw.mean(axis=0) < 254)[0]
+    non_empty_rows = np.where(image_data_bw.mean(axis=1) < 254)[0]
+    cropBox = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
+    image_data_new = image_data[cropBox[0]:cropBox[1]+1, cropBox[2]:cropBox[3]+1]
+    new_image = Image.fromarray(image_data_new)
+    
+    return new_image
+
+def getImageCrops(img_filename, n_img):
+	#Getting PIL image
+	img = Image.open(img_filename)
+
+	preprocess_image = Compose(
+			[
+				custom_crop,
+			    custom_pad,
+			    Resize(input_resolution),
+			]
+		)
+
+	img = preprocess_image(img)
+	width, height = img.size
+
+	preprocess_image = Compose(
+			[
+				FiveCrop(input_resolution),
+			]
+		)
+
+	#Transforming image and getting image crop
+	imgs = preprocess_image(img)
+
+	if width > height:
+		imgs = imgs[2:]
+		imgs = (imgs[0], imgs[2], imgs[1])
+	else:
+		imgs = (imgs[0], imgs[4], imgs[2])
+
+	#return imgs
+	for ix, image in enumerate(imgs):
+		if n_img == 1:
+			img_crops.append([img_filename, "", "imgcrop{}".format(ix+1), image])
+		elif n_img == 2:
+			img_crops.append(["", img_filename, "imgcrop{}".format(ix+1), image])
+
+def postProcessingCLIP(img1_filename, img2_filename, df_clip_crops):
+	#Getting dataframe containing information only about the current filename
+	df_filename = df_clip_crops[df_clip_crops['img1'] == img1_filename]
+	
+	#Getting clip features and converting it to np.array
+	img1_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
+	'''clip_features = np.array(clip_features)
+	clip_features = np.mean(clip_features, axis=0)'''
+
+	#Normalizing (again) clip_features
+	img1_clip_features = img1_clip_features/np.linalg.norm(img1_clip_features)
+
+	### Img2 post processing
+	df_filename = df_clip_crops[df_clip_crops['img2'] == img2_filename]
+	img2_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
+	img2_clip_features = img2_clip_features/np.linalg.norm(img2_clip_features)
+
+	print(type(img1_clip_features))
+	print(type(img2_clip_features))
+
+	#df_clip_final.append([filename, clip_features.tolist()])
+	return img1_clip_features.tolist() + img2_clip_features.tolist()
+
+# Dataset loader
+class ImagesDataset(Dataset):
+	def __init__(self, df, preprocess, input_resolution):
+		super().__init__()
+		self.df = df
+		self.preprocess = preprocess
+		self.empty_image = torch.zeros(3, input_resolution, input_resolution)
+		
+	def __len__(self):
+		return len(self.df)
+		
+	def __getitem__(self, index):
+		row = self.df.iloc[index]
+		
+		try:
+			image = self.preprocess(row['PILImg'])
+		except:
+			image = self.empty_image
+		
+		return image
+
+def generate_clip_features(df_clip):
+	#Loading model and defining preprocessing pipeline
+	model, image_normalization = load_clip_rn50()
+	preprocess = Compose([init_preprocess_image, image_normalization])
+
+	#Getting img crops for img1 and img2
+	df_clip.apply(lambda x: getImageCrops(x["img1"], 1), axis=1)
+	df_clip.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
+
+	df_clip_crops = pd.DataFrame(img_crops, columns=["img1", "img2", 'Crop', 'PILImg'])
+
+	ds = ImagesDataset(df_clip_crops, preprocess, input_resolution)
+
+	dl = DataLoader(ds, batch_size=256, shuffle=False, num_workers=8, pin_memory=True)
+	
+	# Sample one output from model just to check output_dim
+	x = torch.zeros(1, 3, input_resolution, input_resolution, device=device)
+	with torch.no_grad():
+		x_out = model(x)
+	output_dim = x_out.shape[1]
+	
+	# Features data
+	X = np.empty((len(ds), output_dim), dtype=np.float32)
+	
+	# Begin feature generation
+	i = 0
+	for images in tqdm(dl):
+		n_batch = len(images)
+
+		with torch.no_grad():
+			emb_images = model(images.to(device))
+			if emb_images.ndim == 4:
+				emb_images = emb_images.reshape(n_batch, output_dim, -1).mean(-1)
+			emb_images = emb_images.cpu().float().numpy()
+
+		# Save normalized features
+		X[i:i+n_batch] = emb_images / np.linalg.norm(emb_images, axis=1, keepdims=True)
+		
+		i += n_batch
+		
+	del model, image_normalization, ds, dl
+	gc.collect()
+
+	#Assigning features to the pandas dataframe
+	df_clip_crops['clip_features'] = X.tolist()
+
+	#Getting filenames dataframe from df_clip
+	df_clip["clip_features"] = df_clip.apply(lambda x: postProcessingCLIP(x["img1"], x["img2"], df_clip_crops), axis=1)
+	print(len(df_clip.iloc[0]["clip_features"]))
+	'''df_filenames_img1 = pd.DataFrame(df_clip_crops['img1'].unique().tolist(), columns=['img1'])
+	df_filenames_img1.apply(lambda x: postProcessingCLIP(x['Filename'], df_clip_crops), axis=1)'''
+
+	#df_clip = pd.DataFrame(df_clip_final, columns=['Filename', 'clip_features'])
+
+	return df_clip
+
+#global variables
+bins = [6,11,16,21,26]
+
+def generate_handcrafted_features(filename):
+	#Getting r2 histograms
+	img_height, img_width, height, width, histograms = get_r2_histogram(filename, bins)
+	#Getting actually histograms
+	histograms = [x[0] for x in histograms]
+	#Concatenating histograms in a single histogram
+	histogram = [j for i in histograms for j in i]
+
+	return histogram
+
+def generate_features(df):
+	#For img1
+	df = generate_clip_features(df)
+	df["handcrafted_features"] = df.apply(lambda x: generate_handcrafted_features(x["Filename"]), axis=1)
+	return df
 
 #n_rotations was changed by n_transformation to be more generic.
 
