@@ -36,6 +36,8 @@ import torch.nn as nn
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from PIL import Image
 
+import swifter
+
 #Registering global lock
 lock = multiprocessing.Lock()
 
@@ -511,61 +513,59 @@ def custom_crop(image):
     return new_image
 
 def getImageCrops(img_filename, n_img):
-	#Getting PIL image
-	img = Image.open(img_filename)
+	#Getting images currently mapped into img_crops
+	imgs = [x[0] for x in img_crops]
+	
+	#This validation could be improved with genuine.list and forgery.list. 
+	#In fact, is not extremely slow (around 40 sec for CEDAR) but could be improved anyway
+	if img_filename not in imgs:
+		#Getting PIL image
+		img = Image.open(img_filename)
 
-	preprocess_image = Compose(
-			[
-				custom_crop,
-			    custom_pad,
-			    Resize(input_resolution),
-			]
-		)
+		preprocess_image = Compose(
+				[
+					custom_crop,
+				    custom_pad,
+				    Resize(input_resolution),
+				]
+			)
 
-	img = preprocess_image(img)
-	width, height = img.size
+		img = preprocess_image(img)
+		width, height = img.size
 
-	preprocess_image = Compose(
-			[
-				FiveCrop(input_resolution),
-			]
-		)
+		preprocess_image = Compose(
+				[
+					FiveCrop(input_resolution),
+				]
+			)
 
-	#Transforming image and getting image crop
-	imgs = preprocess_image(img)
+		#Transforming image and getting image crop
+		imgs = preprocess_image(img)
 
-	if width > height:
-		imgs = imgs[2:]
-		imgs = (imgs[0], imgs[2], imgs[1])
-	else:
-		imgs = (imgs[0], imgs[4], imgs[2])
+		if width > height:
+			imgs = imgs[2:]
+			imgs = (imgs[0], imgs[2], imgs[1])
+		else:
+			imgs = (imgs[0], imgs[4], imgs[2])
 
-	#return imgs
-	for ix, image in enumerate(imgs):
-		if n_img == 1:
-			img_crops.append([img_filename, "", "imgcrop{}".format(ix+1), image])
-		elif n_img == 2:
-			img_crops.append(["", img_filename, "imgcrop{}".format(ix+1), image])
+		#return imgs
+		for ix, image in enumerate(imgs):
+			img_crops.append([img_filename, "imgcrop{}".format(ix+1), image])
 
 def postProcessingCLIP(img1_filename, img2_filename, df_clip_crops):
 	#Getting dataframe containing information only about the current filename
-	df_filename = df_clip_crops[df_clip_crops['img1'] == img1_filename]
+	df_filename = df_clip_crops[df_clip_crops['img_filename'] == img1_filename]
 	
 	#Getting clip features and converting it to np.array
 	img1_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
-	'''clip_features = np.array(clip_features)
-	clip_features = np.mean(clip_features, axis=0)'''
 
 	#Normalizing (again) clip_features
 	img1_clip_features = img1_clip_features/np.linalg.norm(img1_clip_features)
 
 	### Img2 post processing
-	df_filename = df_clip_crops[df_clip_crops['img2'] == img2_filename]
+	df_filename = df_clip_crops[df_clip_crops['img_filename'] == img2_filename]
 	img2_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
 	img2_clip_features = img2_clip_features/np.linalg.norm(img2_clip_features)
-
-	print(type(img1_clip_features))
-	print(type(img2_clip_features))
 
 	#df_clip_final.append([filename, clip_features.tolist()])
 	return img1_clip_features.tolist() + img2_clip_features.tolist()
@@ -596,11 +596,13 @@ def generate_clip_features(df_clip):
 	model, image_normalization = load_clip_rn50()
 	preprocess = Compose([init_preprocess_image, image_normalization])
 
-	#Getting img crops for img1 and img2
+	#Getting img crops for img1 and img2 (using swifter to speed apply operation)
 	df_clip.apply(lambda x: getImageCrops(x["img1"], 1), axis=1)
 	df_clip.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
+	#df_clip.swifter.apply(lambda x: getImageCrops(x["img1"], 1), axis=1)
+	#df_clip.swifter.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
 
-	df_clip_crops = pd.DataFrame(img_crops, columns=["img1", "img2", 'Crop', 'PILImg'])
+	df_clip_crops = pd.DataFrame(img_crops, columns=["img_filename", 'Crop', 'PILImg'])
 
 	ds = ImagesDataset(df_clip_crops, preprocess, input_resolution)
 
@@ -636,21 +638,17 @@ def generate_clip_features(df_clip):
 
 	#Assigning features to the pandas dataframe
 	df_clip_crops['clip_features'] = X.tolist()
+	print(df_clip_crops)
 
 	#Getting filenames dataframe from df_clip
 	df_clip["clip_features"] = df_clip.apply(lambda x: postProcessingCLIP(x["img1"], x["img2"], df_clip_crops), axis=1)
-	print(len(df_clip.iloc[0]["clip_features"]))
-	'''df_filenames_img1 = pd.DataFrame(df_clip_crops['img1'].unique().tolist(), columns=['img1'])
-	df_filenames_img1.apply(lambda x: postProcessingCLIP(x['Filename'], df_clip_crops), axis=1)'''
-
-	#df_clip = pd.DataFrame(df_clip_final, columns=['Filename', 'clip_features'])
 
 	return df_clip
 
 #global variables
 bins = [6,11,16,21,26]
 
-def generate_handcrafted_features(filename):
+def generate_handcrafted_features_per_image(filename):
 	#Getting r2 histograms
 	img_height, img_width, height, width, histograms = get_r2_histogram(filename, bins)
 	#Getting actually histograms
@@ -660,34 +658,13 @@ def generate_handcrafted_features(filename):
 
 	return histogram
 
+def generate_handcrafted_features(df):
+	df["img1_handcrafted_features"] = df.apply(lambda x: generate_handcrafted_features_per_image(x["img1"]), axis=1)
+	df["img2_handcrafted_features"] = df.apply(lambda x: generate_handcrafted_features_per_image(x["img2"]), axis=1)
+	return df
+
 def generate_features(df):
 	#For img1
 	df = generate_clip_features(df)
-	df["handcrafted_features"] = df.apply(lambda x: generate_handcrafted_features(x["Filename"]), axis=1)
+	#df = generate_handcrafted_features(df)
 	return df
-
-#n_rotations was changed by n_transformation to be more generic.
-
-@click.command()
-@click.option('--dataset', default="CEDAR", help='dataset from which features will be generated')
-@click.option('--grid_based', is_flag=True, help="deciding if features will be calculated globally or by grids (0 meand no grid, otherwise number of grids")
-@click.option('--rotations', is_flag=True, help="calculate features over rotations dataset version")
-@click.option('--scales', is_flag=True, help="calculate features over dataset with scalement")
-@click.option('--rotation_scales', is_flag=True, help="calculate features over dataset with rotations and scalement")
-@click.option('--trim', is_flag=True, help="calculate features over trimmed dataset (only valid for Bengali and Hindi datasets)")
-@click.option('--biased', is_flag=True, help="calculate features over original dataset")
-@click.option('--n_procs', default=-1, help="number of processors to be used in parallel, -1 means using all available processors")
-@click.option('--output_pickle_file', default="test.pk", help="filename of pickle file generated containing features dataframe")
-@click.option('--error_log', default="feature_generation.log", help="logfile for feature generation")
-@click.option('--n_transformations', default=1, help="number of rotations being considered")
-@click.option('--mls_type', default="skeleton_points", help="indicating type of MLS to use: skeleton_points or all_box, default=skeleton_points")
-@click.option('--weights_type', default="EUCL_COLOR", help="indicating weighting type for MLS: EUCL, EUCL_COLOR, EUCL_COLOR_SIGMA, default=EUCL_COLOR")
-@click.option('--binarization_type', default="GLOBAL_BINARY_INV", help="type of threshold used for image binarization")
-def main(dataset, grid_based, rotations, scales, rotation_scales, trim, 
-			biased, n_procs, output_pickle_file, n_transformations, error_log, mls_type, weights_type, binarization_type):
-	
-	generate_features_r2_histogram(dataset, output_pickle_file, grid_based, rotations, scales, rotation_scales, 
-									trim, biased, error_log, n_transformations, n_procs, mls_type, weights_type, binarization_type)
-
-if __name__ == "__main__":
-	main()
