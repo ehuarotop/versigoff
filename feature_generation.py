@@ -649,26 +649,25 @@ def generate_clip_features(df_clip):
 #global variables
 bins = [6,11,16,21,26]
 
-def generate_handcrafted_features_per_image(filename):
-	#Getting unique filenames (in order to not generate again the histogram)
-	if filename not in img_histograms:
-		#Getting r2 histograms
-		img_height, img_width, height, width, histograms = get_r2_histogram(filename, bins)
-		#Getting actually histograms
-		histograms = [x[0] for x in histograms]
-		#Concatenating histograms in a single histogram
-		histogram = [j for i in histograms for j in i]
+def generate_handcrafted_features_per_image(filenames):
+	for filename in filenames:
+		#Getting unique filenames (in order to not generate again the histogram)
+		if filename not in img_histograms:
+			#Getting r2 histograms
+			img_height, img_width, height, width, histograms = get_r2_histogram(filename, bins)
+			#Getting actually histograms
+			histograms = [x[0] for x in histograms]
+			#Concatenating histograms in a single histogram
+			histogram = [j for i in histograms for j in i]
 
-		img_histograms[filename] = histogram
-		#print(len(img_histograms))
+			img_histograms[filename] = histogram
+			#print(len(img_histograms))
 	
 	#returning histograms for each filename in filenames (is assumed that the length of filenames list is 2)
-	return img_histograms[filename]
+	return pd.Series([img_histograms[filenames[0]], img_histograms[filenames[1]]], index=["x","y"])
 
 def generate_handcrafted_features(df):
-	df["img1_handcrafted_features"] = df.apply(lambda x: generate_handcrafted_features_per_image(x["img1"]), axis=1)
-	df["img2_handcrafted_features"] = df.apply(lambda x: generate_handcrafted_features_per_image(x["img2"]), axis=1)
-
+	df[["img1_handcrafted_features","img2_handcrafted_features"]] = df.apply(lambda x: generate_handcrafted_features_per_image([x["img1"], x["img2"]]), axis=1)
 	return df
 
 def generate_features(df):
