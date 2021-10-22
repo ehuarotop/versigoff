@@ -36,8 +36,6 @@ import torch.nn as nn
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from PIL import Image
 
-import swifter
-
 #Registering global lock
 lock = multiprocessing.Lock()
 
@@ -513,45 +511,46 @@ def custom_crop(image):
     
     return new_image
 
-def getImageCrops(img_filename, n_img):
-	#Getting images currently mapped into img_crops
-	imgs = [x[0] for x in img_crops]
-	
-	#This validation could be improved with genuine.list and forgery.list. 
-	#In fact, is not extremely slow (around 40 sec for CEDAR) but could be improved anyway
-	if img_filename not in imgs:
-		#Getting PIL image
-		img = Image.open(img_filename)
+def getImageCrops(filenames):
+	for img_filename in filenames:
+		#Getting images currently mapped into img_crops
+		imgs = [x[0] for x in img_crops]
+		
+		#This validation could be improved with genuine.list and forgery.list. 
+		#In fact, is not extremely slow (around 40 sec for CEDAR) but could be improved anyway
+		if img_filename not in imgs:
+			#Getting PIL image
+			img = Image.open(img_filename)
 
-		preprocess_image = Compose(
-				[
-					custom_crop,
-				    custom_pad,
-				    Resize(input_resolution),
-				]
-			)
+			preprocess_image = Compose(
+					[
+						custom_crop,
+					    custom_pad,
+					    Resize(input_resolution),
+					]
+				)
 
-		img = preprocess_image(img)
-		width, height = img.size
+			img = preprocess_image(img)
+			width, height = img.size
 
-		preprocess_image = Compose(
-				[
-					FiveCrop(input_resolution),
-				]
-			)
+			preprocess_image = Compose(
+					[
+						FiveCrop(input_resolution),
+					]
+				)
 
-		#Transforming image and getting image crop
-		imgs = preprocess_image(img)
+			#Transforming image and getting image crop
+			imgs = preprocess_image(img)
 
-		if width > height:
-			imgs = imgs[2:]
-			imgs = (imgs[0], imgs[2], imgs[1])
-		else:
-			imgs = (imgs[0], imgs[4], imgs[2])
+			if width > height:
+				imgs = imgs[2:]
+				imgs = (imgs[0], imgs[2], imgs[1])
+			else:
+				imgs = (imgs[0], imgs[4], imgs[2])
 
-		#return imgs
-		for ix, image in enumerate(imgs):
-			img_crops.append([img_filename, "imgcrop{}".format(ix+1), image])
+			#return imgs
+			for ix, image in enumerate(imgs):
+				img_crops.append([img_filename, "imgcrop{}".format(ix+1), image])
 
 def postProcessingCLIP(img1_filename, img2_filename, df_clip_crops):
 	#Getting dataframe containing information only about the current filename
@@ -597,11 +596,9 @@ def generate_clip_features(df_clip):
 	model, image_normalization = load_clip_rn50()
 	preprocess = Compose([init_preprocess_image, image_normalization])
 
-	#Getting img crops for img1 and img2 (using swifter to speed apply operation)
-	df_clip.apply(lambda x: getImageCrops(x["img1"], 1), axis=1)
-	df_clip.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
-	#df_clip.swifter.apply(lambda x: getImageCrops(x["img1"], 1), axis=1)
-	#df_clip.swifter.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
+	#Getting img crops for img1 and img2
+	df_clip.apply(lambda x: getImageCrops([x["img1"], x["img2"]]), axis=1)
+	#df_clip.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
 
 	df_clip_crops = pd.DataFrame(img_crops, columns=["img_filename", 'Crop', 'PILImg'])
 
