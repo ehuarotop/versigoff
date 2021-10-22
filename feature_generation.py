@@ -13,6 +13,8 @@ import ast
 from itertools import chain, combinations
 import multiprocessing
 
+import mapply
+
 #from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.pipeline import make_pipeline
@@ -35,6 +37,8 @@ import torch.nn as nn
 #Defining device (gpu/cpu)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from PIL import Image
+
+mapply.init(n_workers=12)
 
 #Registering global lock
 lock = multiprocessing.Lock()
@@ -568,7 +572,7 @@ def postProcessingCLIP(img1_filename, img2_filename, df_clip_crops):
 	img2_clip_features = img2_clip_features/np.linalg.norm(img2_clip_features)
 
 	#df_clip_final.append([filename, clip_features.tolist()])
-	return img1_clip_features.tolist() + img2_clip_features.tolist()
+	return np.array(img1_clip_features.tolist() + img2_clip_features.tolist())
 
 # Dataset loader
 class ImagesDataset(Dataset):
@@ -654,17 +658,25 @@ def generate_handcrafted_features_per_image(filenames):
 			img_height, img_width, height, width, histograms = get_r2_histogram(filename, bins)
 			#Getting actually histograms
 			histograms = [x[0] for x in histograms]
-			#Concatenating histograms in a single histogram
+			#Concatenating histograms in a single hinp.array(stogram)
 			histogram = [j for i in histograms for j in i]
 
 			img_histograms[filename] = histogram
-			#print(len(img_histograms))
+
+	#Conforming handcrafted features as: img1_hist + img2_hist + quadratic_diff (img1_hist, img2_hist) + l2_diff(img1_hist, img2_hist)
+	img1_hist = np.array(img_histograms[filenames[0]])
+	img2_hist = np.array(img_histograms[filenames[1]])
+	quadratic_difference = np.abs(img1_hist-img2_hist)**2
+	l2_difference = np.array([np.linalg.norm(img1_hist-img2_hist)])
 	
 	#returning histograms for each filename in filenames (is assumed that the length of filenames list is 2)
-	return pd.Series([img_histograms[filenames[0]], img_histograms[filenames[1]]], index=["x","y"])
+	#return pd.Series([img_histograms[filenames[0]], img_histograms[filenames[1]]], index=["x","y"])
+	return np.concatenate((img1_hist, img2_hist, quadratic_difference, l2_difference))
 
 def generate_handcrafted_features(df):
-	df[["img1_handcrafted_features","img2_handcrafted_features"]] = df.apply(lambda x: generate_handcrafted_features_per_image([x["img1"], x["img2"]]), axis=1)
+	#df[["img1_handcrafted_features","img2_handcrafted_features"]] = df.apply(lambda x: generate_handcrafted_features_per_image([x["img1"], x["img2"]]), axis=1)
+	#df[["img1_handcrafted_features","img2_handcrafted_features"]] = df.mapply(lambda x: generate_handcrafted_features_per_image([x["img1"], x["img2"]]), axis=1)
+	df["handcrafted_features"] = df.mapply(lambda x: generate_handcrafted_features_per_image([x["img1"], x["img2"]]), axis=1)
 	return df
 
 def generate_features(df):
