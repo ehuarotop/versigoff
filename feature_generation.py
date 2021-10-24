@@ -198,19 +198,21 @@ def get_r2_histogram(image_path, n_bins):
 
 	### Calculating bounding box and size of his diagonal ###
 	# Getting bounding box
-	right = round(np.max(new_skeleton[:,0]))
+	'''right = round(np.max(new_skeleton[:,0]))
 	left = round(np.min(new_skeleton[:,0]))
 	width = right - left
 	#### Have to be careful here because of the order of the pixels (verify with the image)
 	bottom = round(np.max(new_skeleton[:,1]))
 	top = round(np.min(new_skeleton[:,1]))
-	height = bottom-top
+	height = bottom-top'''
 
 	for n_bin in n_bins:
-		histogram = np.histogram(new_skeleton[:,2], bins=np.linspace(0,1,n_bin))
+		#histogram = np.histogram(new_skeleton[:,2], bins=np.linspace(0,1,n_bin))
+		histogram = np.histogram(new_skeleton, bins=np.linspace(0,1,n_bin))
 		histograms.append(histogram)	
 
-	return img_height, img_width, height, width, histograms
+	#return img_height, img_width, height, width, histograms
+	return img_height, img_width, histograms
 
 def process_CEDAR_writers(writers_list, grid_based, rotations, scales, rotation_scales, biased, error_log, n_transformations, mls_type, weights_type, binarization_type, shared_list=[]):
 	num_writers = 55
@@ -655,7 +657,8 @@ def generate_handcrafted_features_per_image(filenames):
 		#Getting unique filenames (in order to not generate again the histogram)
 		if filename not in img_histograms:
 			#Getting r2 histograms
-			img_height, img_width, height, width, histograms = get_r2_histogram(filename, bins)
+			#img_height, img_width, height, width, histograms = get_r2_histogram(filename, bins)
+			img_height, img_width, histograms = get_r2_histogram(filename, bins)
 			#Getting actually histograms
 			histograms = [x[0] for x in histograms]
 			#Concatenating histograms in a single hinp.array(stogram)
@@ -683,5 +686,5 @@ def generate_features(df):
 	#For img1
 	df = generate_clip_features(df)
 	df = generate_handcrafted_features(df)
-	df.to_pickle("CEDAR_UNBIASED_features.pk")
+	df.to_pickle("CEDAR_UNBIASED_features_test.pk")
 	return df

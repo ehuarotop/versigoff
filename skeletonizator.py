@@ -15,23 +15,6 @@ def MovingLeastSquares(skeleton, skeleton_image, original_img):
 	#List to save new skeleton points
 	new_skeleton = []
 
-	def calc_intersection_points(left, right, up, down,params):
-		intersection_points = []
-		
-		#Evaluating Y when X is equal to left and right
-		if linear_function(left, params[0], params[1]) >= down and linear_function(left, params[0], params[1]) <= up:
-			intersection_points.append([left, linear_function(left, params[0], params[1])])
-		if linear_function(right, params[0], params[1]) >= down and linear_function(right, params[0], params[1]) <= up:
-			intersection_points.append([right, linear_function(right, params[0], params[1])])
-
-		#Evaluating X when Y is equal to up and down
-		if (up - param[1])/param[0] >= left and (up-param[1])/param[0] <= right:
-			intersection_points.append([(up - param[1])/param[0], up])
-		if (down - param[1])/param[0] >= left and (down-param[1])/param[0] <= right:
-			intersection_points.append([(down-param[1])/param[0], down])
-
-		return intersection_points
-
 	def f_sigma(x):
 		xmin = 0.2
 		xmax = 0.8
@@ -82,19 +65,8 @@ def MovingLeastSquares(skeleton, skeleton_image, original_img):
 
 				#If there are points to consider in the calc of new skeleton, #when 0, there are no points, when 1 curve_fit can not work
 				if x_data.shape[0] > 1:
-
-					'''if weights_type == "EUCL":
-						sigma_weights = euclidean_distance + 1'''
-					#elif weights_type == "EUCL_COLOR":
 					#Calculating sigma weights
 					sigma_weights = euclidean_distance * distance_from_black + 1
-					'''elif weights_type == "EUCL_COLOR_SIGMA":
-						#Generating numpy array with f_sigma applied over distance_from_black
-						f_sigma_distance_from_black = np.array([f_sigma(distance) for distance in distance_from_black])
-
-						#Calculating weights
-						#sigma_weights = euclidean_distance * distance_from_black + 1
-						sigma_weights = (1 - f_sigma_distance_from_black) / (1 + euclidean_distance)'''
 
 					#Fitting the curve
 					#param_x, param_cov_x = curve_fit(linear_function, x_data, y_data, sigma=euclidean_distance)
@@ -138,22 +110,23 @@ def MovingLeastSquares(skeleton, skeleton_image, original_img):
 					#if r_squared >= 0.5:
 					if True:
 						#Obtaining intersection points for the current square
-						if swap:
+						'''if swap:
 							intersection_points = calc_intersection_points(point[1] - L/2, point[1] + L/2, point[0] + L/2, point[0]-L/2, param)
 						else:
-							intersection_points = calc_intersection_points(point[0] - L/2, point[0] + L/2, point[1] + L/2, point[1]-L/2, param)	
+							intersection_points = calc_intersection_points(point[0] - L/2, point[0] + L/2, point[1] + L/2, point[1]-L/2, param)	'''
 
 						#Converting intersection_points to numpy array
-						intersection_points = np.asarray(intersection_points)
+						#intersection_points = np.asarray(intersection_points)
 
 						#Appending midpoint to new_skeleton
 						#intersection_point.x, intersection_point.y, r_squared value
-						new_skeleton.append([np.mean(intersection_points[:,0]), np.mean(intersection_points[:,1]), r_squared])
+						#new_skeleton.append([np.mean(intersection_points[:,0]), np.mean(intersection_points[:,1]), r_squared])
+						new_skeleton.append(r_squared)
 
-						if swap:
+						'''if swap:
 							tmp = new_skeleton[-1][1]
 							new_skeleton[-1][1] = new_skeleton[-1][0]
-							new_skeleton[-1][0] = tmp
+							new_skeleton[-1][0] = tmp'''
 		except RuntimeError as e:
 			error = True
 			pass
@@ -163,14 +136,6 @@ def MovingLeastSquares(skeleton, skeleton_image, original_img):
 
 def getSkeleton(image):
 	#Image binarization and invertion
-	'''if binarization_type == "ADAPTIVE":
-		transformed_image = cv.adaptiveThreshold(image, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY_INV, 11, 10)
-	elif binarization_type == "BINARY_INV":
-		ret, transformed_image = cv.threshold(image, 200, 255, cv.THRESH_BINARY_INV) #200 is an experimental values
-	elif binarization_type == "BINARY_INV_OTSU":
-		ret, transformed_image = cv.threshold(image, 0, 255, cv.THRESH_BINARY_INV+cv.THRESH_OTSU)'''
-
-	#Image binarization and invertion
 	ret, transformed_image = cv.threshold(image, 0, 255, cv.THRESH_BINARY_INV+cv.THRESH_OTSU)
 
 	#Normalizing image in range from 0 to 1
@@ -178,23 +143,6 @@ def getSkeleton(image):
 
 	#Getting skeleton from binarized and inverted image
 	skeleton_image = skeletonize(transformed_image)
-
-	#Process skeleton differently for adaptive binarization type
-	'''if binarization_type == "ADAPTIVE":
-		#Getting connected components of skeleton image
-		ret,components_t2,stats,centroids = cv.connectedComponentsWithStats(np.uint8(skeleton_image))
-
-		#Actually drawing the connected components of the image
-		rows, cols = components_t2.shape
-		components_t2_skeleton = np.copy(components_t2)
-
-		for i in range(0, rows):
-		    for j in range(0, cols):
-		        pixel = components_t2[i][j]
-		        components_t2_skeleton[i][j] = (stats[pixel][-1] > 5 and pixel != 0)
-
-		#Getting final skeleton
-		skeleton_image = np.copy(components_t2_skeleton)'''
 
 	### Getting actual skeleton
 	#Getting indexes where skeleton[i] == True (actual skeleton)
