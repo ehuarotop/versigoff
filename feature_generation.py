@@ -38,7 +38,7 @@ import torch.nn as nn
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from PIL import Image
 
-mapply.init(n_workers=12)
+mapply.init(n_workers=multiprocessing.cpu_count())
 
 #Registering global lock
 lock = multiprocessing.Lock()
