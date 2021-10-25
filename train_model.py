@@ -7,10 +7,11 @@ import click
 #@click.option('--img_ext', default=".png", help="Image extension")
 @click.option('--pairs_file', help="file containing signature image pairs")
 @click.option('--features_file', default="", help="indicates if already have a features file generated, '' means that the features file needs to be generated")
+@click.option('--base_datasets_dir', help="base directory for the dataset being processed")
 @click.option('--save_classifier', is_flag=True)
 @click.option('--dataset', type=click.Choice(['CEDAR', 'Bengali', 'Hindi'], case_sensitive=True), help="Which dataset has to be used for training")
 @click.option('--logfile', help="File where training log will be saved")
-def main(pairs_file, features_file, save_classifier, dataset, logfile):
+def main(pairs_file, features_file, base_datasets_dir, save_classifier, dataset, logfile):
 	'''image_pairs = [["../master-thesis/datasets/CEDAR/full_org_hist_transform/original_1_1.png", 
 					"../master-thesis/datasets/CEDAR/full_org_hist_transform/original_1_2.png"],
 					["../master-thesis/datasets/CEDAR/full_org_hist_transform/original_1_1.png", 

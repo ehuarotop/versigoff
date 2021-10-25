@@ -5,8 +5,6 @@ import sklearn.metrics as sk_metrics
 from sklearn.model_selection import cross_validate, KFold
 import numpy as np
 
-base_datasets_dir = "../master-thesis/datasets/CEDAR"
-
 def writeToFile(filename, str_text):
     if os.path.exists(filename):
         open_mode = "a"
@@ -33,19 +31,16 @@ def get_dataset_info(dataset):
 		num_writers = 55
 		gen_sig_per_writer = 24
 		forg_sig_per_writer = 24
-		dataset = "CEDAR"
-	elif dataset == "BENGALI":
+	elif dataset == "Bengali":
 		#writers = list(np.arange(1,101))
 		num_writers = 100
 		gen_sig_per_writer = 24
 		forg_sig_per_writer = 30
-		dataset = "Bengali"
-	elif dataset == "HINDI":
+	elif dataset == "Hindi":
 		#writers = list(np.arange(1,161))
 		num_writers = 160
 		gen_sig_per_writer = 24
 		forg_sig_per_writer = 30
-		dataset = "Hindi"
 
 	return num_writers, gen_sig_per_writer, forg_sig_per_writer
 
@@ -62,7 +57,7 @@ def get_df_writer_balanced(writer, df_writer, seed):
 
 	return df_writer_balanced
 
-def process_pair_file(filename, dataset):
+def process_pair_file(filename, dataset, base_datasets_dir):
 	#Getting pairs from txt file and converting it to pd dataframe format
 	img_pairs = readTxtFile(filename)
 	img_pairs = [x.split(" ") for x in img_pairs]
@@ -75,6 +70,8 @@ def process_pair_file(filename, dataset):
 
 	if dataset == "CEDAR":
 		df["writer"] = df.apply(lambda x: (int)(os.path.basename(x["img1"]).split("_")[1]), axis=1)
+	elif dataset == "Bengali" or dataset == "Hindi":
+		df["writer"] = df.apply(lambda x: (int)(x["img1"].split("/")[-2].lstrip("0")))
 
 	return df
 

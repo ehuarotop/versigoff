@@ -12,14 +12,14 @@ from sklearn.svm import LinearSVC
 #random.seed(1337)
 seed = 1337
 
-def train(dataset, pairs_file, features_file, save_classifier, logfile):
+def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier, logfile):
 	########### Getting features from the pairs_file ###########
 	#Getting related information to dataset
 	num_writers, gen_sig_per_writer, forg_sig_per_writer = utils.get_dataset_info(dataset)
 
 	if not os.path.exists(features_file):
 		#Getting initial dataframe with image pairs, writer and label information
-		df = utils.process_pair_file(pairs_file, dataset)
+		df = utils.process_pair_file(pairs_file, dataset, base_datasets_dir)
 		df = fg.generate_features(df, features_file)
 	else:
 		df = pickle.load(open(features_file, "rb"))
