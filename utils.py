@@ -71,7 +71,7 @@ def process_pair_file(filename, dataset, base_datasets_dir):
 	if dataset == "CEDAR":
 		df["writer"] = df.apply(lambda x: (int)(os.path.basename(x["img1"]).split("_")[1]), axis=1)
 	elif dataset == "Bengali" or dataset == "Hindi":
-		df["writer"] = df.apply(lambda x: (int)(x["img1"].split("/")[-2].lstrip("0")))
+		df["writer"] = df.apply(lambda x: (int)(x["img1"].split("/")[-2].lstrip("0")), axis=1)
 
 	return df
 
