@@ -561,11 +561,9 @@ def getImageCrops(filenames):
 def postProcessingCLIP(img1_filename, img2_filename, df_clip_crops):
 	#Getting dataframe containing information only about the current filename
 	df_filename = df_clip_crops[df_clip_crops['img_filename'] == img1_filename]
-	
 	#Getting clip features and converting it to np.array
 	img1_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
-
-	#Normalizing (again) clip_features
+	#Normalizing (again) clip_features --- CLIP_RENORM
 	img1_clip_features = img1_clip_features/np.linalg.norm(img1_clip_features)
 
 	### Img2 post processing
@@ -573,7 +571,6 @@ def postProcessingCLIP(img1_filename, img2_filename, df_clip_crops):
 	img2_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
 	img2_clip_features = img2_clip_features/np.linalg.norm(img2_clip_features)
 
-	#df_clip_final.append([filename, clip_features.tolist()])
 	return np.array(img1_clip_features.tolist() + img2_clip_features.tolist())
 
 # Dataset loader
@@ -669,6 +666,13 @@ def generate_handcrafted_features_per_image(filenames):
 	#Conforming handcrafted features as: img1_hist + img2_hist + quadratic_diff (img1_hist, img2_hist) + l2_diff(img1_hist, img2_hist)
 	img1_hist = np.array(img_histograms[filenames[0]])
 	img2_hist = np.array(img_histograms[filenames[1]])
+
+	#Normalizing image histograms in both cases (part of the handcrafted feature generation pipeline)
+	img1_hist = img1_hist/np.linalg.norm(img1_hist)
+	img2_hist = img2_hist/np.linalg.norm(img2_hist)
+
+	#Subhistograms flag not necessary because it applied to histograms medians, kl_div and ks_value which finally are not being considered as handcrafted features
+
 	quadratic_difference = np.abs(img1_hist-img2_hist)**2
 	l2_difference = np.array([np.linalg.norm(img1_hist-img2_hist)])
 	
@@ -682,9 +686,9 @@ def generate_handcrafted_features(df):
 	df["handcrafted_features"] = df.mapply(lambda x: generate_handcrafted_features_per_image([x["img1"], x["img2"]]), axis=1)
 	return df
 
-def generate_features(df):
+def generate_features(df, features_file):
 	#For img1
 	df = generate_clip_features(df)
 	df = generate_handcrafted_features(df)
-	df.to_pickle("CEDAR_UNBIASED_features_test.pk")
+	df.to_pickle(features_file)
 	return df

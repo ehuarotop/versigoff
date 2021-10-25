@@ -4,50 +4,64 @@ import numpy as np
 import random
 import pickle
 import os
+import pandas as pd
 from sklearn.svm import LinearSVC
 
 #Generating random seed
-np.random.seed(1337)
-random.seed(1337)
+#np.random.seed(1337)
+#random.seed(1337)
+seed = 1337
 
-def get_writer(filename):
-	return (int)(os.path.basename(filename).split("_")[1])
-
-def train(dataset, pairs_file, generate_features=False):
+def train(dataset, pairs_file, features_file, save_classifier, logfile):
+	########### Getting features from the pairs_file ###########
 	#Getting related information to dataset
 	num_writers, gen_sig_per_writer, forg_sig_per_writer = utils.get_dataset_info(dataset)
+
+	if not os.path.exists(features_file):
+		#Getting initial dataframe with image pairs, writer and label information
+		df = utils.process_pair_file(pairs_file, dataset)
+		df = fg.generate_features(df, features_file)
+	else:
+		df = pickle.load(open(features_file, "rb"))
+
+	#Getting only necessary columns
+	df = df[["clip_features", "handcrafted_features", "writer", "label"]]
+
+	########### Balancing dataset ###########
+	np.random.seed((int)(seed))
+	random.seed((int)(seed))
 
 	#Getting list of writers
 	writers = list(np.arange(1,num_writers+1))
 
-	if generate_features:
-		#Getting initial dataframe with image pairs, writer and label information
-		df = utils.process_pair_file(pairs_file, dataset)
-		
-		#print(df, df.shape)
-		df = fg.generate_features(df)
-	else:
-		df = pickle.load(open("CEDAR_UNBIASED_features.pk", "rb"))
+	df_writer_list = []
 
-	#Getting writer
-	df["writer"] = df.apply(lambda x: get_writer(x["img1"]), axis=1)
-	df["label"] = df.apply(lambda x: (int)(x["label"]), axis=1)
-	df = df[["clip_features", "handcrafted_features", "writer", "label"]]
-	print(type(df.iloc[0]["label"]))
-	x_data = np.stack([np.concatenate((vec[0], vec[1]/np.linalg.norm(vec[1]), [vec[2]])) for vec in df.values])
+	#Iterate over writers to get balanced dataset
+	for writer1 in writers:
+		#Getting df filtered by writer
+		df_writer = df[df['writer'] == writer1]
+
+		df_writer_balanced = utils.get_df_writer_balanced(writer1, df_writer, (int)(seed))
+
+		df_writer_list.append(df_writer_balanced)
+
+	#Concatenating list of dataframes just generated
+	df = pd.concat(df_writer_list)
+
+	########### Performing training ###########
+	#x_data = np.stack([np.concatenate((vec[0], vec[1]/np.linalg.norm(vec[1]), [vec[2]])) for vec in df.values])
+	x_data = np.stack([np.concatenate((vec[0], vec[1], [vec[2]])) for vec in df.values])
 	y_data = df["label"].values
 
 	#Defining the classifier
 	clf = LinearSVC(C=1)
 
 	#Getting custom cross validator
-	custom_cv = utils.custom_cross_validation(x_data, "CEDAR", 10)
+	custom_cv = utils.custom_cross_validation(x_data, dataset, 10)
 
 	x_data = x_data[:,:-1]
 
-	print(x_data.shape)
-
-	utils.perform_cross_validation(clf, x_data, y_data, "", cv=custom_cv)
+	utils.perform_cross_validation(clf, x_data, y_data, logfile, cv=custom_cv)
 
 def predict(df):
 	print("Hello world predict")

@@ -49,6 +49,19 @@ def get_dataset_info(dataset):
 
 	return num_writers, gen_sig_per_writer, forg_sig_per_writer
 
+def get_df_writer_balanced(writer, df_writer, seed):
+	class_0 = df_writer[df_writer["label"] == 0]
+	class_1 = df_writer[df_writer["label"] == 1]
+
+	N = min(class_1.shape[0], class_0.shape[0])
+
+	class_0_random = class_0.sample(n=N, random_state=seed)
+	class_1_random = class_1.sample(n=N, random_state=seed)
+
+	df_writer_balanced = pd.concat([class_0_random, class_1_random])
+
+	return df_writer_balanced
+
 def process_pair_file(filename, dataset):
 	#Getting pairs from txt file and converting it to pd dataframe format
 	img_pairs = readTxtFile(filename)
@@ -58,9 +71,10 @@ def process_pair_file(filename, dataset):
 	#Fixing directory for img1 and img2
 	df["img1"] = df.apply(lambda x: os.path.join(base_datasets_dir, x["img1"]), axis=1)
 	df["img2"] = df.apply(lambda x: os.path.join(base_datasets_dir, x["img2"]), axis=1)
+	df["label"] = df.apply(lambda x: (int)(x["label"]), axis=1)
 
 	if dataset == "CEDAR":
-		df["writer"] = df.apply(lambda x: os.path.basename(x["img1"]).split("_")[1], axis=1)
+		df["writer"] = df.apply(lambda x: (int)(os.path.basename(x["img1"]).split("_")[1]), axis=1)
 
 	return df
 
