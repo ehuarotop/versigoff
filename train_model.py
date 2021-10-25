@@ -29,7 +29,7 @@ def main(pairs_file, features_file, base_datasets_dir, save_classifier, dataset,
 
 	print(df)'''
 
-	clf.train(dataset, pairs_file, features_file, save_classifier, logfile)
+	clf.train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier, logfile)
 
 if __name__ == "__main__":
 	main()
