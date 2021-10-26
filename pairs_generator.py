@@ -201,8 +201,18 @@ def main(dataset, pairs_file, image_dir_genuine, image_dir_forgery, n_samples, t
 		for ix_writer in writers:
 			writer_lines = []
 
-			gen_signatures = ["original_{0}_{1}.png".format(ix_writer,i) for i in gen_sigs_per_writer]
-			forg_signatures = ["forgeries_{0}_{1}.png".format(ix_writer,i) for i in forg_sigs_per_writer]
+			if transform == "rotation":
+				gen_signatures = ["original_{0}_{1}_rotation1.png".format(ix_writer,i) for i in gen_sigs_per_writer]
+				forg_signatures = ["forgeries_{0}_{1}_rotation1.png".format(ix_writer,i) for i in forg_sigs_per_writer]
+			elif transform == "scale":
+				gen_signatures = ["original_{0}_{1}_scale1.png".format(ix_writer,i) for i in gen_sigs_per_writer]
+				forg_signatures = ["forgeries_{0}_{1}_scale1.png".format(ix_writer,i) for i in forg_sigs_per_writer]
+			elif transform == "rotation_scale":
+				gen_signatures = ["original_{0}_{1}_rotation_scale1.png".format(ix_writer,i) for i in gen_sigs_per_writer]
+				forg_signatures = ["forgeries_{0}_{1}_rotation_scale1.png".format(ix_writer,i) for i in forg_sigs_per_writer]
+			else:
+				gen_signatures = ["original_{0}_{1}.png".format(ix_writer,i) for i in gen_sigs_per_writer]
+				forg_signatures = ["forgeries_{0}_{1}.png".format(ix_writer,i) for i in forg_sigs_per_writer]
 
 			#Generating pairs (genuine / forged)
 			for f_sig in forg_signatures:
