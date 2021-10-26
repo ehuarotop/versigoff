@@ -1,4 +1,5 @@
 import os
+import click
 
 @click.command()
 @click.option('--n_samples', default="", help="number of samples to be considered in the signature pairs generation")
