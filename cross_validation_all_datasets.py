@@ -7,10 +7,8 @@ def main(n_samples):
 
 	if n_samples == "":
 		samples = "all"
-	elif n_samples == "5":
-		samples = "5_samples"
-	elif n_samples == "12":
-		samples = "12_samples"
+	else:
+		samples = "{}_samples".format(n_samples)
 
 	print("CEDAR_BIASED")
 	os.system("""time python train_model.py --pairs_file pairs_files/{}/CEDAR_BIASED_pairs.txt \

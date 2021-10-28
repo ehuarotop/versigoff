@@ -1,6 +1,7 @@
 import os
-import pandas as pd
+import subprocess
 import time
+import pandas as pd
 import sklearn.metrics as sk_metrics
 from sklearn.model_selection import cross_validate, KFold
 import numpy as np
@@ -188,3 +189,13 @@ def compute_EER(y_data, predicted_y):
 
 	#print(EER_1, EER_2, EER)
 	return EER
+
+def get_log_files_list(pdfs_path):
+    #Performing find over pdfs path
+    result_find = subprocess.run(['find', pdfs_path, "-name", '*.log'], stdout=subprocess.PIPE)
+    result_find_string = result_find.stdout.decode("utf-8")
+
+    #Getting information from string result
+    logs = result_find_string.splitlines()
+
+    return logs
