@@ -97,7 +97,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 			writer_lines = []
 
 			#Genuine-random forgery pair generation
-			random_forgers = ["{:03d}".format(i) for i in range(1, num_writers+1)] #Generating all writers list
+			random_forgers = ["{}".format(i) for i in range(1, num_writers+1)] #Generating all writers list
 			del random_forgers[ix] #removing the current writer
 
 			for i in random_forgers:
@@ -203,7 +203,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 			writer_lines = []
 
 			#Genuine-random forgery pair generation
-			random_forgers = ["{:03d}".format(i) for i in range(1, num_writers+1)] #Generating all writers list
+			random_forgers = ["{}".format(i) for i in range(1, num_writers+1)] #Generating all writers list
 			del random_forgers[ix] #removing the current writer
 
 			#Generating pairs (genuine / forged)
