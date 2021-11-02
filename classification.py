@@ -20,12 +20,12 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 	if not os.path.exists(features_file):
 		#Getting initial dataframe with image pairs, writer and label information
 		df = utils.process_pair_file(pairs_file, dataset, base_datasets_dir)
-		df = fg.generate_features(df, features_file)
+		#df = fg.generate_features(df, features_file)
 	else:
 		df = pickle.load(open(features_file, "rb"))
 
 	#Getting only necessary columns
-	df = df[["clip_features", "handcrafted_features", "writer", "label"]]
+	#df = df[["clip_features", "handcrafted_features", "writer", "label"]]
 
 	########### Balancing dataset ###########
 	np.random.seed((int)(seed))
@@ -47,6 +47,9 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 
 	#Concatenating list of dataframes just generated
 	df = pd.concat(df_writer_list)
+
+	df = fg.generate_features(df, features_file)
+	df = df[["clip_features", "handcrafted_features", "writer", "label"]]
 
 	########### Performing training ###########
 	#x_data = np.stack([np.concatenate((vec[0], vec[1]/np.linalg.norm(vec[1]), [vec[2]])) for vec in df.values])
