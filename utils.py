@@ -5,6 +5,7 @@ import pandas as pd
 import sklearn.metrics as sk_metrics
 from sklearn.model_selection import cross_validate, KFold
 import numpy as np
+import random
 
 def writeToFile(filename, str_text):
     if os.path.exists(filename):
@@ -73,7 +74,7 @@ def balance_dataset(df, seed, num_writers):
 		#Getting df filtered by writer
 		df_writer = df[df['writer'] == writer1]
 
-		df_writer_balanced = utils.get_df_writer_balanced(writer1, df_writer, (int)(seed))
+		df_writer_balanced = get_df_writer_balanced(writer1, df_writer, (int)(seed))
 
 		df_writer_list.append(df_writer_balanced)
 

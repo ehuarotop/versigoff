@@ -28,7 +28,7 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		df = pickle.load(open(features_file, "rb"))
 
 	#Verifying if dataset is unbalanced
-	if df_writer[df_writer["label"] == 0].shape[0] != df_writer[df_writer["label"] == 1].shape[0]:
+	if df[df["label"] == 0].shape[0] != df[df["label"] == 1].shape[0]:
 		df = utils.balance_dataset(df, seed, num_writers)
 
 	#Getting only necessary columns
@@ -53,9 +53,17 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		if save_classifier:
 			pickle.dump(clf, open(clf_name, "wb"))
 
+def score(df, clf):
+	#df needs to be a pandas datafaframe containing features in the following format df[["clip_features", "handcrafted_features", "writer", "label"]]
+	x_data = np.stack([np.concatenate((vec[0], vec[1])) for vec in df.values])
+	y_data = df["label"].values
+	scores = clf.score(x_data, y_data)
+
+	return scores 
+
 def predict(df, clf):
 	#df needs to be a pandas datafaframe containing features in the following format df[["clip_features", "handcrafted_features", "writer", "label"]]
-	x_data = np.stack([np.concatenate((vec[0], vec[1], [vec[2]])) for vec in df.values])
+	x_data = np.stack([np.concatenate((vec[0], vec[1])) for vec in df.values])
 	predictions = clf.predict(x_data)
 
 	return predictions
