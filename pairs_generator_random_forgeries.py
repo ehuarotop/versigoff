@@ -120,7 +120,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 						#Generating list of genuine and forgeries image names
 						f_sig = "B-S-{ix_writer}-G-{:02d}_trimmed_rotation_scale1.png".format(random_signature, ix_writer=i)
 
-					line = os.path.join(writer_dir, g_sig) + " " + os.path.join(i, f_sig) + " 0"
+					line = os.path.join(writer_dir, g_sig) + " " + os.path.join("{:03d}".format(i), f_sig) + " 0"
 					writer_lines.append(line)
 
 			#Generating pairs (genuine / genuine)
@@ -260,7 +260,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 							#Generating list of genuine and forgeries image names
 							f_sig = "H-S-{:03d}-G-{:02d}_trimmed_rotation_scale1.png".format(i, random_signature)
 
-					line = os.path.join(writer_dir, g_sig) + " " + os.path.join(i, f_sig) + " 0"
+					line = os.path.join(writer_dir, g_sig) + " " + os.path.join("{:03d}".format(i), f_sig) + " 0"
 					writer_lines.append(line)
 
 			#Generating pairs (genuine / genuine)
