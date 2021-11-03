@@ -28,7 +28,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 			writer_lines = []
 
 			if transform != "":
-				gen_signatures = ["original_{0}_{1}_{2}_1.png".format(ix_writer,i, transform) for i in gen_sigs_per_writer]
+				gen_signatures = ["original_{0}_{1}_{2}1.png".format(ix_writer,i, transform) for i in gen_sigs_per_writer]
 			else:
 				gen_signatures = ["original_{0}_{1}.png".format(ix_writer,i) for i in gen_sigs_per_writer]
 
@@ -203,7 +203,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 			writer_lines = []
 
 			#Genuine-random forgery pair generation
-			random_forgers = ["{}".format(i) for i in range(1, num_writers+1)] #Generating all writers list
+			random_forgers = [i for i in range(1, num_writers+1)] #Generating all writers list
 			del random_forgers[ix] #removing the current writer
 
 			#Generating pairs (genuine / forged)
@@ -260,7 +260,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 							#Generating list of genuine and forgeries image names
 							f_sig = "H-S-{:03d}-G-{:02d}_trimmed_rotation_scale1.png".format(i, random_signature)
 
-					line = os.path.join(writer_dir, g_sig) + " " + os.path.join("{:03d}".format((int)(i)), f_sig) + " 0"
+					line = os.path.join(writer_dir, g_sig) + " " + os.path.join("{:03d}".format(i), f_sig) + " 0"
 					writer_lines.append(line)
 
 			#Generating pairs (genuine / genuine)

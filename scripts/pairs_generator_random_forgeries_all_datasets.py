@@ -37,7 +37,7 @@ def main(n_samples):
 					--pairs_file CEDAR_UNBIASED_SCALES_pairs.txt --image_dir_genuine ../../master-thesis/datasets/CEDAR/full_org_scales_1\
 					{} --transform scale""".format(samples_option))
 	os.system("""python ../pairs_generator_random_forgeries.py --dataset CEDAR \
-					--pairs_file CEDAR_BIASED_ROTATION_SCALES_pairs.txt --image_dir_genuine ../../master-thesis/datasets/CEDAR/full_org_rotation_scales_1\
+					--pairs_file CEDAR_UNBIASED_ROTATION_SCALES_pairs.txt --image_dir_genuine ../../master-thesis/datasets/CEDAR/full_org_rotation_scales_1\
 					{} --transform rotation_scale""".format(samples_option))
 
 if __name__ == "__main__":
