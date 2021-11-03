@@ -12,7 +12,7 @@ from sklearn.svm import LinearSVC
 #random.seed(1337)
 seed = 1337
 
-def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier, logfile):
+def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier, clf_name, logfile, cross_val):
 	########### Getting features from the pairs_file ###########
 	#Getting related information to dataset
 	num_writers, gen_sig_per_writer, forg_sig_per_writer = utils.get_dataset_info(dataset)
@@ -52,19 +52,24 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 	df = df[["clip_features", "handcrafted_features", "writer", "label"]]
 
 	########### Performing training ###########
-	#x_data = np.stack([np.concatenate((vec[0], vec[1]/np.linalg.norm(vec[1]), [vec[2]])) for vec in df.values])
 	x_data = np.stack([np.concatenate((vec[0], vec[1], [vec[2]])) for vec in df.values])
 	y_data = df["label"].values
 
 	#Defining the classifier
 	clf = LinearSVC(C=1)
 
-	#Getting custom cross validator
-	custom_cv = utils.custom_cross_validation(x_data, dataset, 10)
+	if cross_val:
+		#Getting custom cross validator
+		custom_cv = utils.custom_cross_validation(x_data, dataset, 10)
 
-	x_data = x_data[:,:-1]
+		x_data = x_data[:,:-1]
 
-	utils.perform_cross_validation(clf, x_data, y_data, logfile, cv=custom_cv)
+		utils.perform_cross_validation(clf, x_data, y_data, logfile, cv=custom_cv)
+	else:
+		clf.fit(x_data[:,:-1], y_data)
+		if save_classifier:
+			pickle.dump(clf, open(clf_name, "wb"))
+
 
 def predict(df):
 	print("Hello world predict")
