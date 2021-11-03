@@ -20,35 +20,18 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 	if not os.path.exists(features_file):
 		#Getting initial dataframe with image pairs, writer and label information
 		df = utils.process_pair_file(pairs_file, dataset, base_datasets_dir)
-		#df = fg.generate_features(df, features_file)
+		#Balancing the dataset
+		df = utils.balance_dataset(df, seed, num_writers)
+		#Generating features
+		df = fg.generate_features(df, features_file)
 	else:
 		df = pickle.load(open(features_file, "rb"))
 
+	#Verifying if dataset is unbalanced
+	if df_writer[df_writer["label"] == 0].shape[0] != df_writer[df_writer["label"] == 1].shape[0]:
+		df = utils.balance_dataset(df, seed, num_writers)
+
 	#Getting only necessary columns
-	#df = df[["clip_features", "handcrafted_features", "writer", "label"]]
-
-	########### Balancing dataset ###########
-	np.random.seed((int)(seed))
-	random.seed((int)(seed))
-
-	#Getting list of writers
-	writers = list(np.arange(1,num_writers+1))
-
-	df_writer_list = []
-
-	#Iterate over writers to get balanced dataset
-	for writer1 in writers:
-		#Getting df filtered by writer
-		df_writer = df[df['writer'] == writer1]
-
-		df_writer_balanced = utils.get_df_writer_balanced(writer1, df_writer, (int)(seed))
-
-		df_writer_list.append(df_writer_balanced)
-
-	#Concatenating list of dataframes just generated
-	df = pd.concat(df_writer_list)
-
-	df = fg.generate_features(df, features_file)
 	df = df[["clip_features", "handcrafted_features", "writer", "label"]]
 
 	########### Performing training ###########
@@ -70,6 +53,9 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		if save_classifier:
 			pickle.dump(clf, open(clf_name, "wb"))
 
+def predict(df, clf):
+	#df needs to be a pandas datafaframe containing features in the following format df[["clip_features", "handcrafted_features", "writer", "label"]]
+	x_data = np.stack([np.concatenate((vec[0], vec[1], [vec[2]])) for vec in df.values])
+	predictions = clf.predict(x_data)
 
-def predict(df):
-	print("Hello world predict")
+	return predictions

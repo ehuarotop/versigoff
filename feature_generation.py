@@ -315,3 +315,7 @@ def generate_features(df, features_file):
 	df = generate_handcrafted_features(df)
 	df.to_pickle(features_file)
 	return df
+
+
+#PENDINGS
+# Optimize feature generation (img_histograms to be shared with mapply, apparently each worker has its own version of this dictionary control)

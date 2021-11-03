@@ -58,6 +58,30 @@ def get_df_writer_balanced(writer, df_writer, seed):
 
 	return df_writer_balanced
 
+def balance_dataset(df, seed, num_writers):
+	########### Balancing dataset ###########
+	np.random.seed((int)(seed))
+	random.seed((int)(seed))
+
+	#Getting list of writers
+	writers = list(np.arange(1,num_writers+1))
+
+	df_writer_list = []
+
+	#Iterate over writers to get balanced dataset
+	for writer1 in writers:
+		#Getting df filtered by writer
+		df_writer = df[df['writer'] == writer1]
+
+		df_writer_balanced = utils.get_df_writer_balanced(writer1, df_writer, (int)(seed))
+
+		df_writer_list.append(df_writer_balanced)
+
+	#Concatenating list of dataframes just generated
+	df = pd.concat(df_writer_list)
+
+	return df
+
 def process_pair_file(filename, dataset, base_datasets_dir):
 	#Getting pairs from txt file and converting it to pd dataframe format
 	img_pairs = readTxtFile(filename)
