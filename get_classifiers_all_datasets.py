@@ -3,7 +3,7 @@ import click
 
 @click.command()
 @click.option('--features_dir', default="", help="number of samples to be considered in the signature pairs generation")
-def main():
+def main(features_dir):
 	os.system("""python train_model.py --features_file {} \
 				--clf_name CEDAR_BIASED_clf.pk --save_classifier""".format(os.path.join(features_dir, "CEDAR_BIASED_features.pk")))
 	os.system("""python train_model.py --features_file {} \
