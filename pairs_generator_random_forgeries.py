@@ -41,7 +41,7 @@ def main(dataset, pairs_file, image_dir_genuine, transform):
 					random_signature = random.choice(gen_sigs_per_writer)
 
 					if transform != "":
-						f_sig = "original_{0}_{1}_{2}_1.png".format(i, random_signature, transform)
+						f_sig = "original_{0}_{1}_{2}1.png".format(i, random_signature, transform)
 					else:
 						f_sig = "original_{0}_{1}.png".format(i, random_signature)
 
