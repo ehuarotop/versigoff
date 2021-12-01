@@ -21,7 +21,7 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		#Getting initial dataframe with image pairs, writer and label information
 		df = utils.process_pair_file(pairs_file, dataset, base_datasets_dir)
 		#Balancing the dataset
-		df = utils.balance_dataset(df, seed, num_writers)
+		df = utils.balance_dataset(df, seed, num_writers, dataset)
 		#Generating features
 		df = fg.generate_features(df, features_file)
 	else:
@@ -29,7 +29,7 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 
 	#Verifying if dataset is unbalanced
 	if df[df["label"] == 0].shape[0] != df[df["label"] == 1].shape[0]:
-		df = utils.balance_dataset(df, seed, num_writers)
+		df = utils.balance_dataset(df, seed, num_writers, dataset)
 
 	#Getting only necessary columns
 	df = df[["clip_features", "handcrafted_features", "writer", "label"]]

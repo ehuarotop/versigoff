@@ -63,13 +63,18 @@ def get_df_writer_balanced(writer, df_writer, seed):
 
 	return df_writer_balanced
 
-def balance_dataset(df, seed, num_writers):
+def balance_dataset(df, seed, num_writers, dataset):
 	########### Balancing dataset ###########
 	np.random.seed((int)(seed))
 	random.seed((int)(seed))
 
 	#Getting list of writers
-	writers = list(np.arange(1,num_writers+1))
+	if dataset == "MCYT":
+		writers = [os.path.basename(i[0]) for i in os.walk("../master-thesis/datasets/MCYT")]
+		writers = [i for i in writers if i != "MCYT"]
+		#writers = list(np.arange(1,num_writers+1))
+	else:
+		writers = list(np.arange(1,num_writers+1))
 
 	df_writer_list = []
 
