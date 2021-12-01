@@ -233,7 +233,45 @@ def main(dataset, pairs_file, image_dir_genuine, image_dir_forgery, n_samples, t
 		#Writing lines to a txt file for CEDAR pairs
 		with open(pairs_file, 'w') as filehandle:
 			filehandle.writelines("%s\n" % line for line in dataset_lines)
+	elif dataset == "MCYT":
+		num_writers = 75
+		gen_sig_per_writer = 15
+		forg_sig_per_writer = 15
 
+		dataset_lines = []
+
+		writers_dir = [os.path.basename(i[0]) for i in os.walk("../master-thesis/datasets/MCYT")]
+		writers_dir = [i for i in writers_dir if i != "MCYT"]
+
+		for ix, writer_dir in enumerate(writers_dir):
+			gen_signatures = []
+			forg_signatures = []
+			absolute_writer_dir = os.path.join("../master-thesis/datasets/MCYT", writer_dir)
+
+			for root, dirs, files in os.walk(absolute_writer_dir):
+				gen_signatures = [file for file in files if "v" in file.lower()]
+				forg_signatures = [file for file in files if "f" in file]
+
+			writer_lines = []
+
+			#Generating pairs (genuine / forged)
+			for f_sig in forg_signatures:
+				for g_sig in gen_signatures:
+					line = os.path.join(writer_dir, g_sig) + " " + os.path.join(writer_dir, f_sig) + " 0"
+					writer_lines.append(line)
+
+			#Generating pairs (genuine / genuine)
+			for ix, g_sig in enumerate(gen_signatures):
+				for i in range(ix+1, len(gen_signatures)):
+					line = os.path.join(writer_dir, gen_signatures[i]) + " " + os.path.join(writer_dir, g_sig) + " 1"
+					writer_lines.append(line)
+
+			#Concatenating previous generated lines with the lines for the current writer
+			dataset_lines += writer_lines
+
+		#Writing lines to a txt file for CEDAR pairs
+		with open(pairs_file, 'w') as filehandle:
+			filehandle.writelines("%s\n" % line for line in dataset_lines)
 
 if __name__ == "__main__":
 	main()
