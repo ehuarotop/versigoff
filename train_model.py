@@ -10,7 +10,7 @@ import click
 @click.option('--base_datasets_dir', default="", help="base directory for the dataset being processed")
 @click.option('--save_classifier', is_flag=True)
 @click.option('--clf_name', default="", help="name to save the classifier")
-@click.option('--dataset', default="CEDAR", type=click.Choice(['CEDAR', 'Bengali', 'Hindi'], case_sensitive=True), help="Which dataset has to be used for training")
+@click.option('--dataset', default="CEDAR", type=click.Choice(['CEDAR', 'Bengali', 'Hindi', 'MCYT'], case_sensitive=True), help="Which dataset has to be used for training")
 @click.option('--logfile', default="", help="File where training log will be saved")
 @click.option('--cross_val', is_flag=True)
 def main(pairs_file, features_file, base_datasets_dir, save_classifier, clf_name, dataset, logfile, cross_val):

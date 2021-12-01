@@ -43,6 +43,10 @@ def get_dataset_info(dataset):
 		num_writers = 160
 		gen_sig_per_writer = 24
 		forg_sig_per_writer = 30
+	elif dataset == "MCYT":
+		num_writers = 75
+		gen_sig_per_writer = 15
+		forg_sig_per_writer = 15
 
 	return num_writers, gen_sig_per_writer, forg_sig_per_writer
 
@@ -98,6 +102,8 @@ def process_pair_file(filename, dataset, base_datasets_dir):
 		df["writer"] = df.apply(lambda x: (int)(os.path.basename(x["img1"]).split("_")[1]), axis=1)
 	elif dataset == "Bengali" or dataset == "Hindi":
 		df["writer"] = df.apply(lambda x: (int)(x["img1"].split("/")[-2].lstrip("0")), axis=1)
+	elif dataset == "MCYT":
+		df["writer"] = df.apply(lambda x: (int)(x["img1"].split("/")[-2].lstrip("0")), axis=1)
 
 	return df
 
@@ -106,11 +112,16 @@ def custom_cross_validation(x_data, dataset, n_splits):
 		# Generating list of 55 writers.
 		idx_writers = np.arange(1,56)
 	elif dataset == "Bengali":
-		# Generating list of 55 writers.
+		# Generating list of 100 writers.
 		idx_writers = np.arange(1,101)
 	elif dataset == "Hindi":
-		# Generating list of 55 writers.
+		# Generating list of 160 writers.
 		idx_writers = np.arange(1,161)
+	elif dataset == "MCYT":
+		# Generating list of 75 writers.
+		#idx_writers = np.arange(1,76)
+		idx_writers = [os.path.basename(i[0]) for i in os.walk("../master-thesis/datasets/MCYT")]
+		idx_writers = np.array([i.lstrip("0") for i in idx_writers if i != "MCYT"])
 
 	#Splitting writers in training and test dataset
 	kf = KFold(n_splits=n_splits, shuffle=True)
