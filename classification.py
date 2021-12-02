@@ -20,10 +20,13 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 	if not os.path.exists(features_file):
 		#Getting initial dataframe with image pairs, writer and label information
 		df = utils.process_pair_file(pairs_file, dataset, base_datasets_dir)
+		print("Pairs file processed")
 		#Balancing the dataset
 		df = utils.balance_dataset(df, seed, num_writers, dataset)
+		print("dataset balanced")
 		#Generating features
 		df = fg.generate_features(df, features_file)
+		print("features generated")
 	else:
 		df = pickle.load(open(features_file, "rb"))
 
