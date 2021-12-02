@@ -273,5 +273,44 @@ def main(dataset, pairs_file, image_dir_genuine, image_dir_forgery, n_samples, t
 		with open(pairs_file, 'w') as filehandle:
 			filehandle.writelines("%s\n" % line for line in dataset_lines)
 
+	elif dataset == "GPDS":
+		num_writers = 4000
+		gen_sig_per_writer = 24
+		forg_sig_per_writer = 30
+
+		dataset_lines = []
+
+		writers_dir = ["{:03d}".format(i) for i in range(1, num_writers+1)]
+		gen_sigs_per_writer = list(range(1, gen_sig_per_writer+1))
+		forg_sigs_per_writer = list(range(1, forg_sig_per_writer+1))
+
+		#Generating pairs for each writer
+		for ix, writer_dir in enumerate(writers_dir):
+			#Generating list of genuine and forgeries image names
+			gen_signatures = ["c-{:03d}-{:02d}.jpg".format(ix+1, i) for i in gen_sigs_per_writer]
+			forg_signatures = ["cf-{:03d}-{:02d}.jpg".format(ix+1, i) for i in forg_sigs_per_writer]
+
+			writer_lines = []
+
+			#Generating pairs (genuine / forged)
+			for f_sig in forg_signatures:
+				for g_sig in gen_signatures:
+					line = os.path.join(writer_dir, g_sig) + " " + os.path.join(writer_dir, f_sig) + " 0"
+					writer_lines.append(line)
+
+			#Generating pairs (genuine / genuine)
+			for ix, g_sig in enumerate(gen_signatures):
+				for i in range(ix+1, len(gen_sigs_per_writer)):
+					line = os.path.join(writer_dir, gen_signatures[i]) + " " + os.path.join(writer_dir, g_sig) + " 1"
+					writer_lines.append(line)
+
+			#Concatenating previous generated lines with the lines for the current writer
+			dataset_lines += writer_lines
+
+		#Writing lines to a txt file for CEDAR pairs
+		with open(pairs_file, 'w') as filehandle:
+			filehandle.writelines("%s\n" % line for line in dataset_lines)
+
+
 if __name__ == "__main__":
 	main()

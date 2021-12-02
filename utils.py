@@ -47,6 +47,10 @@ def get_dataset_info(dataset):
 		num_writers = 75
 		gen_sig_per_writer = 15
 		forg_sig_per_writer = 15
+	elif dataset == "GPDS":
+		num_writers = 4000
+		gen_sig_per_writer = 24
+		forg_sig_per_writer = 30
 
 	return num_writers, gen_sig_per_writer, forg_sig_per_writer
 
@@ -104,7 +108,7 @@ def process_pair_file(filename, dataset, base_datasets_dir):
 
 	if dataset == "CEDAR":
 		df["writer"] = df.apply(lambda x: (int)(os.path.basename(x["img1"]).split("_")[1]), axis=1)
-	elif dataset == "Bengali" or dataset == "Hindi":
+	elif dataset == "Bengali" or dataset == "Hindi" or dataset == "GPDS":
 		df["writer"] = df.apply(lambda x: (int)(x["img1"].split("/")[-2].lstrip("0")), axis=1)
 	elif dataset == "MCYT":
 		df["writer"] = df.apply(lambda x: (int)(x["img1"].split("/")[-2].lstrip("0")), axis=1)
@@ -121,6 +125,9 @@ def custom_cross_validation(x_data, dataset, n_splits):
 	elif dataset == "Hindi":
 		# Generating list of 160 writers.
 		idx_writers = np.arange(1,161)
+	elif dataset == "GPDS":
+		# Generating list of 4000 writers.
+		idx_writers = np.arange(1,4001)
 	elif dataset == "MCYT":
 		# Generating list of 75 writers.
 		#idx_writers = np.arange(1,76)
