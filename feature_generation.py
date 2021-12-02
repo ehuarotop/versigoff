@@ -38,7 +38,7 @@ import torch.nn as nn
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from PIL import Image
 
-mapply.init(n_workers=multiprocessing.cpu_count()/2)
+mapply.init(n_workers=multiprocessing.cpu_count()//2)
 
 #Registering global lock
 lock = multiprocessing.Lock()
@@ -225,11 +225,8 @@ def generate_clip_features(df_clip):
 	preprocess = Compose([init_preprocess_image, image_normalization])
 
 	#Getting img crops for img1 and img2
-	df_clip.mapply(lambda x: getImageCrops([x["img1"], x["img2"]]), axis=1)
+	df_clip.apply(lambda x: getImageCrops([x["img1"], x["img2"]]), axis=1)
 	#df_clip.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
-	print(len(img_crops))
-	import sys
-	sys.exit(0)
 
 	df_clip_crops = pd.DataFrame(img_crops, columns=["img_filename", 'Crop', 'PILImg'])
 
@@ -316,8 +313,6 @@ def generate_features(df, features_file):
 	#For img1
 	df = generate_clip_features(df)
 	print("clip features generated")
-	import sys
-	sys.exit(0)
 	df = generate_handcrafted_features(df)
 	print("hand crafted features generated")
 	df.to_pickle(features_file)
