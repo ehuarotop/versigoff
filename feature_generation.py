@@ -143,7 +143,8 @@ def custom_crop(image):
     return new_image
 
 def getImageCrops(filenames):
-	for img_filename in filenames:
+	for index, img_filename in enumerate(filenames):
+		print(index, img_filename)
 		#Getting images currently mapped into img_crops
 		imgs = [x[0] for x in img_crops]
 		
@@ -225,8 +226,12 @@ def generate_clip_features(df_clip):
 	preprocess = Compose([init_preprocess_image, image_normalization])
 
 	#Getting img crops for img1 and img2
+	print("Generating image crops")
 	df_clip.apply(lambda x: getImageCrops([x["img1"], x["img2"]]), axis=1)
 	#df_clip.apply(lambda x: getImageCrops(x["img2"], 2), axis=1)
+	print("image crops generated")
+
+	print(len(img_crops))
 
 	df_clip_crops = pd.DataFrame(img_crops, columns=["img_filename", 'Crop', 'PILImg'])
 
