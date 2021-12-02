@@ -71,8 +71,7 @@ def balance_dataset(df, seed, num_writers, dataset):
 	#Getting list of writers
 	if dataset == "MCYT":
 		writers = [os.path.basename(i[0]) for i in os.walk("../master-thesis/datasets/MCYT")]
-		writers = [i for i in writers if i != "MCYT"]
-		#writers = list(np.arange(1,num_writers+1))
+		writers = [int(i.lstrip("0")) for i in writers if i != "MCYT"]
 	else:
 		writers = list(np.arange(1,num_writers+1))
 
