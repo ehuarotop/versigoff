@@ -258,7 +258,7 @@ def generate_clip_features(df_images):
 	#Freeing memory
 	X = None
 
-	df_clip_crops.to_pickle("df_clip_crops_GPDS.pk")
+	#df_clip_crops.to_pickle("df_clip_crops_GPDS.pk")
 
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
