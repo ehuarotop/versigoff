@@ -259,6 +259,8 @@ def generate_clip_features(df_clip):
 	#Freeing memory
 	X = None
 
+	df_clip_crops.to_pickle("df_clip_crops_GPDS.pk")
+
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
 	df_clip["clip_features"] = df_clip.mapply(lambda x: postProcessingCLIP(x["imagepath"], df_clip_crops[df_clip_crops['imagepath'] == x["imagepath"]]), axis=1)
