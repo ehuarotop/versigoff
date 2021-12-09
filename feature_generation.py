@@ -208,6 +208,8 @@ class ImagesDataset(Dataset):
 		return image
 
 def generate_clip_features(df_images):
+	global df_clip_crops
+
 	#Loading model and defining preprocessing pipeline
 	model, image_normalization = load_clip_rn50()
 	preprocess = Compose([init_preprocess_image, image_normalization])
@@ -258,15 +260,13 @@ def generate_clip_features(df_images):
 	#Freeing memory
 	X = None
 
-	#df_clip_crops.to_pickle("df_clip_crops_GPDS.pk")
-
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
 	df_images["clip_features"] = df_images.mapply(lambda x: postProcessingCLIP(x["imagepath"]), axis=1)
 	#Freeing memory
 	df_clip_crops = None
 
-	return df_clip
+	return df_images
 
 #global variables
 bins = [6,11,16,21,26]
@@ -297,6 +297,7 @@ def generate_final_features(row):
 	return [clip_features, handcrafted_features]
 
 def generate_features(df, imgs, features_file):
+	global df_clip
 	#Generating clip features
 	print("Generating CLIP features")
 	df_clip = generate_clip_features(imgs)
