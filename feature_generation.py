@@ -256,6 +256,8 @@ def generate_clip_features(df_clip):
 
 	#Assigning features to the pandas dataframe
 	df_clip_crops['clip_features'] = X.tolist()
+	#Freeing memory
+	X = None
 
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
