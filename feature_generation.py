@@ -176,10 +176,10 @@ def getImageCrops(filename):
 
 	return [imgs[0], imgs[1], imgs[2]]
 
-def postProcessingCLIP(img1_filename, df_clip_crops):
+def postProcessingCLIP(img1_filename, df_filename):
 	print(img1_filename)
 	#Getting dataframe containing information only about the current filename
-	df_filename = df_clip_crops[df_clip_crops['imagepath'] == img1_filename]
+	#df_filename = df_clip_crops[df_clip_crops['imagepath'] == img1_filename]
 	#Getting clip features and converting it to np.array
 	img1_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
 	#Normalizing (again) clip_features --- CLIP_RENORM
@@ -261,7 +261,7 @@ def generate_clip_features(df_clip):
 
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
-	df_clip["clip_features"] = df_clip.mapply(lambda x: postProcessingCLIP(x["imagepath"], df_clip_crops), axis=1)
+	df_clip["clip_features"] = df_clip.mapply(lambda x: postProcessingCLIP(x["imagepath"], df_clip_crops[df_clip_crops['imagepath'] == x["imagepath"]]), axis=1)
 	#Freeing memory
 	df_clip_crops = None
 
