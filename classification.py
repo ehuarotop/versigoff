@@ -13,9 +13,12 @@ from sklearn.svm import LinearSVC
 seed = 1337
 
 def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier, clf_name, logfile, cross_val):
+	print("Starting")
 	########### Getting features from the pairs_file ###########
 	#Getting related information to dataset
 	num_writers, gen_sig_per_writer, forg_sig_per_writer = utils.get_dataset_info(dataset)
+
+	print("get_dataset_info")
 
 	if not os.path.exists(features_file):
 		#Getting initial dataframe with image pairs, writer and label information
@@ -24,8 +27,13 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		#Balancing the dataset
 		df = utils.balance_dataset(df, seed, num_writers, dataset)
 		print("dataset balanced")
+		
+		#Getting unique image paths
+		imgs = np.unique(df[['img1', 'img2']].values)
+		imgs = pd.DataFrame(imgs, columns=["imagepath"])
+
 		#Generating features
-		df = fg.generate_features(df, features_file)
+		df = fg.generate_features(df, imgs, features_file)
 		print("features generated")
 	else:
 		df = pickle.load(open(features_file, "rb"))
