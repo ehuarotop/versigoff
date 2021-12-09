@@ -49,9 +49,8 @@ n_overlaps = [0.05,0.10,0.15,0.20]
 n_grids = [1,2,3,4]
 
 #global variables for CLIP feature generation
-img_crops = []
-img_histograms = {}
-df_clip_final = []
+df_clip_crops = None
+df_clip = None
 
 def get_r2_histogram(image_path, n_bins):
 	histograms = []
@@ -176,10 +175,10 @@ def getImageCrops(filename):
 
 	return [imgs[0], imgs[1], imgs[2]]
 
-def postProcessingCLIP(img1_filename, df_filename):
+def postProcessingCLIP(img1_filename):
 	print(img1_filename)
 	#Getting dataframe containing information only about the current filename
-	#df_filename = df_clip_crops[df_clip_crops['imagepath'] == img1_filename]
+	df_filename = df_clip_crops[df_clip_crops['imagepath'] == img1_filename]
 	#Getting clip features and converting it to np.array
 	img1_clip_features = np.mean(np.array(df_filename['clip_features'].values.tolist()), axis=0)
 	#Normalizing (again) clip_features --- CLIP_RENORM
@@ -208,14 +207,14 @@ class ImagesDataset(Dataset):
 		
 		return image
 
-def generate_clip_features(df_clip):
+def generate_clip_features(df_images):
 	#Loading model and defining preprocessing pipeline
 	model, image_normalization = load_clip_rn50()
 	preprocess = Compose([init_preprocess_image, image_normalization])
 
 	#Getting img crops for img1 and img2
 	print("Generating image crops")
-	df_clip_crops = df_clip.copy()
+	df_clip_crops = df_images.copy()
 	df_clip_crops["imgcrop1"], df_clip_crops["imgcrop2"], df_clip_crops["imgcrop3"] = df_clip_crops.mapply(lambda x: getImageCrops(x["imagepath"]), axis=1, result_type="expand").T.values
 	df_clip_crops = pd.DataFrame(np.concatenate((	df_clip_crops[["imagepath", "imgcrop1"]].assign(Crop=1).values, 
 													df_clip_crops[["imagepath", "imgcrop2"]].assign(Crop=2).values, 
@@ -263,7 +262,7 @@ def generate_clip_features(df_clip):
 
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
-	df_clip["clip_features"] = df_clip.mapply(lambda x: postProcessingCLIP(x["imagepath"], df_clip_crops[df_clip_crops['imagepath'] == x["imagepath"]]), axis=1)
+	df_images["clip_features"] = df_images.mapply(lambda x: postProcessingCLIP(x["imagepath"]), axis=1)
 	#Freeing memory
 	df_clip_crops = None
 
@@ -284,7 +283,7 @@ def generate_histograms(filename):
 
 	return histogram
 
-def generate_final_features(row, df_clip):
+def generate_final_features(row):
 	#Getting info from img1 and img2
 	img1_row = df_clip.loc[row["img1"],:]
 	img2_row = df_clip.loc[row["img2"],:]
@@ -309,7 +308,7 @@ def generate_features(df, imgs, features_file):
 
 	#Generating final features
 	print("Generating final features")
-	df["clip_features"], df["handcrafted_features"] = df.mapply(lambda x: generate_final_features(x, df_clip), axis=1, result_type="expand").T.values
+	df["clip_features"], df["handcrafted_features"] = df.mapply(lambda x: generate_final_features(x), axis=1, result_type="expand").T.values
 	#Freeing memory
 	df_clip = None
 
