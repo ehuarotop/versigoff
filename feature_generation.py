@@ -306,6 +306,7 @@ def generate_features(df, imgs, features_file):
 	print("Generating histograms (hancrafted features)")
 	df_clip["histogram"] = df_clip.mapply(lambda x: generate_histograms(x["imagepath"]), axis=1)
 	df_clip = df_clip.set_index("imagepath")
+	df_clip.to_pickle(features_file)
 
 	#Generating final features
 	print("Generating final features")
@@ -313,7 +314,4 @@ def generate_features(df, imgs, features_file):
 	#Freeing memory
 	df_clip = None
 
-	#Saving final dataframe to pickle
-	print("Saving final dataframe to pickle")
-	df.to_pickle(features_file)
 	return df
