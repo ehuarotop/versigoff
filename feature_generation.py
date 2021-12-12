@@ -321,6 +321,6 @@ def generate_features(df, imgs, features_file):
 	df["clip_features"], df["handcrafted_features"] = df.mapply(lambda x: generate_final_features(x), axis=1, result_type="expand").T.values
 	#Freeing memory
 	df_clip = None
-	del df
+	del df_clip
 
 	return df
