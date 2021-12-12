@@ -6,6 +6,7 @@ import pickle
 import os
 import pandas as pd
 from sklearn.svm import LinearSVC
+import gc
 
 #Generating random seed
 #np.random.seed(1337)
@@ -53,7 +54,7 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 	x_data = np.stack([np.concatenate((vec[0], vec[1], [vec[2]])) for vec in df.values])
 	y_data = df["label"].values
 	#Freeing memory
-	df = None
+	del df
 
 	#Defining the classifier
 	clf = LinearSVC(C=1)

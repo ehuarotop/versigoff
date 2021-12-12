@@ -259,12 +259,14 @@ def generate_clip_features(df_images):
 	df_clip_crops['clip_features'] = X.tolist()
 	#Freeing memory
 	X = None
+	del X
 
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
 	df_images["clip_features"] = df_images.mapply(lambda x: postProcessingCLIP(x["imagepath"]), axis=1)
 	#Freeing memory
 	df_clip_crops = None
+	del df_clip_crops
 
 	return df_images
 
@@ -319,5 +321,6 @@ def generate_features(df, imgs, features_file):
 	df["clip_features"], df["handcrafted_features"] = df.mapply(lambda x: generate_final_features(x), axis=1, result_type="expand").T.values
 	#Freeing memory
 	df_clip = None
+	del df
 
 	return df

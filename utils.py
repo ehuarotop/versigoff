@@ -6,6 +6,9 @@ import sklearn.metrics as sk_metrics
 from sklearn.model_selection import cross_validate, KFold
 import numpy as np
 import random
+import multiprocessing
+
+cpus = multiprocessing.cpu_count()//2
 
 def writeToFile(filename, str_text):
     if os.path.exists(filename):
@@ -177,7 +180,7 @@ def perform_cross_validation(classifier, x_data, y_data, logfile="", cv=10):
 			 	}
 
 	# scores = cross_validate(classifier, x_data, y_data, cv=cv, scoring=scoring)
-	scores = cross_validate(classifier, x_data, y_data, cv=cv, scoring=scoring)
+	scores = cross_validate(classifier, x_data, y_data, cv=cv, scoring=scoring, n_jobs=cpus)
 
 	exec_time = time.time() - start_time
 	
@@ -192,6 +195,8 @@ def perform_cross_validation(classifier, x_data, y_data, logfile="", cv=10):
 																	scores['test_recall'][i],
 																	scores['test_roc_auc'][i],
 																	scores['test_EER'][i])
+
+		print(str_metrics)
 
 	#Printing final scores stats after locking the process
 	str_metrics += "(Global) acc:       %0.4f (+/- %0.4f)\n" % (scores['test_accuracy'].mean(), scores['test_accuracy'].std())
