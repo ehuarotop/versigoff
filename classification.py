@@ -45,21 +45,27 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		df = utils.balance_dataset(df, seed, num_writers, dataset)"""
 
 	#Getting only necessary columns
+	print("Getting only needed columns from features dataframe")
 	df = df[["clip_features", "handcrafted_features", "writer", "label"]]
 
 	########### Performing training ###########
+	print("Generating x_data and y_data")
 	x_data = np.stack([np.concatenate((vec[0], vec[1], [vec[2]])) for vec in df.values])
 	y_data = df["label"].values
+	#Freeing memory
+	df = None
 
 	#Defining the classifier
 	clf = LinearSVC(C=1)
 
 	if cross_val:
+		print("Generating cross validation")
 		#Getting custom cross validator
 		custom_cv = utils.custom_cross_validation(x_data, dataset, 10)
 
 		x_data = x_data[:,:-1]
 
+		print("performing cross validation")
 		utils.perform_cross_validation(clf, x_data, y_data, logfile, cv=custom_cv)
 	else:
 		clf.fit(x_data[:,:-1], y_data)
