@@ -56,6 +56,8 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 	#Freeing memory
 	del df
 
+	gc.collect()
+
 	#Defining the classifier
 	clf = LinearSVC(C=1)
 

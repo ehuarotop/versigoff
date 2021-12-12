@@ -323,4 +323,6 @@ def generate_features(df, imgs, features_file):
 	df_clip = None
 	del df_clip
 
+	gc.collect()
+
 	return df
