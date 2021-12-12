@@ -298,15 +298,21 @@ def generate_final_features(row):
 
 def generate_features(df, imgs, features_file):
 	global df_clip
-	#Generating clip features
-	print("Generating CLIP features")
-	df_clip = generate_clip_features(imgs)
+	
+	if imgs is not None:
+		#Generating clip features
+		print("Generating CLIP features")
+		df_clip = generate_clip_features(imgs)
 
-	#Generating histograms (hancrafted features)
-	print("Generating histograms (hancrafted features)")
-	df_clip["histogram"] = df_clip.mapply(lambda x: generate_histograms(x["imagepath"]), axis=1)
-	df_clip = df_clip.set_index("imagepath")
-	df_clip.to_pickle(features_file)
+		#Generating histograms (hancrafted features)
+		print("Generating histograms (hancrafted features)")
+		df_clip["histogram"] = df_clip.mapply(lambda x: generate_histograms(x["imagepath"]), axis=1)
+		#Setting index to imagepath
+		df_clip = df_clip.set_index("imagepath")
+		#Saving dataframe with clip and handcrafted features generated
+		df_clip.to_pickle(features_file)
+	else:
+		df_clip = pickle.load(open(features_file, "rb"))
 
 	#Generating final features
 	print("Generating final features")
