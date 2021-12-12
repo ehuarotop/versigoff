@@ -260,6 +260,7 @@ def generate_clip_features(df_images):
 	#Freeing memory
 	X = None
 	del X
+	gc.collect()
 
 	#Getting filenames dataframe from df_clip
 	print("Joining image crops information")
@@ -267,6 +268,7 @@ def generate_clip_features(df_images):
 	#Freeing memory
 	df_clip_crops = None
 	del df_clip_crops
+	gc.collect()
 
 	return df_images
 
