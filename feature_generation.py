@@ -37,6 +37,7 @@ import torch.nn as nn
 #Defining device (gpu/cpu)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from PIL import Image
+from sklearn.decomposition import PCA
 
 mapply.init(n_workers=multiprocessing.cpu_count()//2)
 
@@ -292,7 +293,11 @@ def generate_final_features(row):
 	img1_row = df_clip.loc[row["img1"],:]
 	img2_row = df_clip.loc[row["img2"],:]
 
-	clip_features = np.array(img1_row["clip_features"].tolist() + img2_row["clip_features"].tolist())
+	pca = PCA(n_components=256)
+	pca_clip_img1 = pca.fit_transform(img1_row["clip_features"])
+	pca_clip_img2 = pca.fit_transform(img2_row["clip_features"])
+
+	clip_features = np.array(pca_clip_img1.tolist() + pca_clip_img2.tolist())
 
 	quadratic_difference = np.abs(img1_row["histogram"]-img2_row["histogram"])**2
 	l2_difference = np.array([np.linalg.norm(img1_row["histogram"]-img2_row["histogram"])])
