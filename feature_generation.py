@@ -293,11 +293,7 @@ def generate_final_features(row):
 	img1_row = df_clip.loc[row["img1"],:]
 	img2_row = df_clip.loc[row["img2"],:]
 
-	pca = PCA(n_components=256)
-	pca_clip_img1 = pca.fit_transform(img1_row["clip_features"])
-	pca_clip_img2 = pca.fit_transform(img2_row["clip_features"])
-
-	clip_features = np.array(pca_clip_img1.tolist() + pca_clip_img2.tolist())
+	clip_features = np.array(img1_row["clip_features"].tolist() + img2_row["clip_features"].tolist())
 
 	quadratic_difference = np.abs(img1_row["histogram"]-img2_row["histogram"])**2
 	l2_difference = np.array([np.linalg.norm(img1_row["histogram"]-img2_row["histogram"])])
@@ -322,6 +318,12 @@ def generate_features(df, imgs, features_file):
 		df_clip.to_pickle(features_file)
 	else:
 		df_clip = pickle.load(open(features_file, "rb"))
+
+	#Applying PCA over clip_features
+	pca = PCA(n_components=128)
+	clip_features = np.array([x for x in df_clip["clip_features"].values])
+	clip_features = pca.fit_transform(clip_features)
+	df_clip = df_clip.assign(clip_features=clip_features)
 
 	#Generating final features
 	print("Generating final features")
