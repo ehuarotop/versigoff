@@ -20,7 +20,7 @@ def perform_transform(dataset):
             os.system("mkdir -p {}".format(absolute_writer_dir.replace("MCYT", "MCYT_UNBIASED")))
             for root, dirs, files in os.walk(absolute_writer_dir):
                 for file in files:
-                    if os.path.splitext(file)[1] == ".bmp":
+                    if os.path.splitext(file)[1].lower() == ".bmp":
                         org_file = os.path.join(absolute_writer_dir, file)
                         print(org_file)
                         new_file = org_file.replace("MCYT", "MCYT_UNBIASED")
