@@ -6,7 +6,7 @@ import os
 
 @click.command()
 @click.option('--dataset', help="dataset which will be transformed")
-def main():
+def main(dataset):
     perform_transform(dataset)
 
 def perform_transform(dataset):
