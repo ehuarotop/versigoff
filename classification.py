@@ -71,7 +71,7 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		print("performing cross validation")
 		utils.perform_cross_validation(clf, x_data, y_data, logfile, cv=custom_cv)
 	else:
-		clf.fit(x_data[:,:-1], y_data)
+		clf = clf.fit(x_data[:,:-1], y_data)
 		if save_classifier:
 			pickle.dump(clf, open(clf_name, "wb"))
 
