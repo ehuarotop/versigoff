@@ -7,8 +7,8 @@ def main(n_samples):
 
 	if n_samples == "":
 		samples = "all_samples"
-	elif n_samples == "all_pca":
-		samples = "all_samples_pca"
+	elif n_samples == "all_new":
+		samples = "all_samples_new"
 	else:
 		samples = "{}_samples".format(n_samples)
 
