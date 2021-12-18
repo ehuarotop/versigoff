@@ -301,7 +301,7 @@ def generate_final_features(row):
 
 	return [clip_features, handcrafted_features]
 
-def generate_features(df, imgs, features_file):
+def generate_features(df, imgs, features_file, pca=False):
 	global df_clip
 	
 	if imgs is not None:
@@ -320,11 +320,12 @@ def generate_features(df, imgs, features_file):
 		df_clip = pickle.load(open(features_file, "rb"))
 
 	#Applying PCA over clip_features
-	pca = PCA(n_components=128)
-	clip_features = np.array([x for x in df_clip["clip_features"].values])
-	clip_features = pca.fit_transform(clip_features)
-	clip_features = [x for x in clip_features]
-	df_clip = df_clip.assign(clip_features=clip_features)
+	if pca:
+		pca = PCA(n_components=128)
+		clip_features = np.array([x for x in df_clip["clip_features"].values])
+		clip_features = pca.fit_transform(clip_features)
+		clip_features = [x for x in clip_features]
+		df_clip = df_clip.assign(clip_features=clip_features)
 
 	#Generating final features
 	print("Generating final features")
