@@ -79,9 +79,9 @@ def main(base_datasets_dir, logfile):
 								"BENGALI_UNBIASED_SCALES_features.pk": os.path.join(base_datasets_dir, "BHSig260/Bengali_trimmed_scales"),
 								"BENGALI_UNBIASED_ROTATION_SCALES_features.pk": os.path.join(base_datasets_dir, "BHSig260/Bengali_trimmed_rotation_scales"),
 								"HINDI_UNBIASED_features.pk": os.path.join(base_datasets_dir, "BHSig260/Hindi_trimmed"),
-								"HINDI_UNBIASED_ROTATIONS_features.pk": os.path.join(base_datasets_dir, "BHSig260/Bengali_trimmed_rotations"),
-								"HINDI_UNBIASED_SCALES_features.pk": os.path.join(base_datasets_dir, "BHSig260/Bengali_trimmed_scales"),
-								"HINDI_UNBIASED_ROTATION_SCALES_features.pk": os.path.join(base_datasets_dir, "BHSig260/Bengali_trimmed_rotation_scales"),
+								"HINDI_UNBIASED_ROTATIONS_features.pk": os.path.join(base_datasets_dir, "BHSig260/Hindi_trimmed_rotations"),
+								"HINDI_UNBIASED_SCALES_features.pk": os.path.join(base_datasets_dir, "BHSig260/Hindi_trimmed_scales"),
+								"HINDI_UNBIASED_ROTATION_SCALES_features.pk": os.path.join(base_datasets_dir, "BHSig260/Hindi_trimmed_rotation_scales"),
 							}
 
 	for test in tests:
