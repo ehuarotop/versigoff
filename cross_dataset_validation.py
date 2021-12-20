@@ -41,7 +41,7 @@ def cross_dataset_validation(classifier_path, features_file, pairs_file, base_da
 	clf = pickle.load(open(classifier_path, "rb"))
 	scores = clf.score(x_data, y_data)
 
-	utils.writeToFile(logfile, "{}, {}, {}".format(classifier, dataset, scores))
+	utils.writeToFile(logfile, "{}, {}, {}\n".format(classifier, dataset, scores))
 
 @click.command()
 @click.option('--base_datasets_dir', help="base directory where all datasets are stored")
