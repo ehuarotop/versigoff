@@ -11,6 +11,20 @@ seed = 1337
 
 def cross_dataset_validation(classifier_path, classifier, features_file, dataset, pairs_file, base_datasets_dir, logfile):
 
+	if "CEDAR" in features_file:
+		dataset = "CEDAR"
+	elif "BENGALI" in features_file:
+		dataset = "Bengali"
+	elif "HINDI" in features_file:
+		dataset = "Hindi"
+
+	if "CEDAR" in classifier_path:
+		classifier = "CEDAR"
+	elif "BENGALI" in classifier_path:
+		classifier = "Bengali"
+	elif "HINDI" in classifier_path:
+		classifier = "Hindi"
+
 	#Getting related information to dataset
 	num_writers, gen_sig_per_writer, forg_sig_per_writer = utils.get_dataset_info(dataset)
 
@@ -53,20 +67,6 @@ def main(base_datasets_dir, logfile):
 			["HINDI_UNBIASED_ROTATION_SCALES_clf.pk", "CEDAR_UNBIASED_ROTATION_SCALES_features.pk", "BENGALI_UNBIASED_ROTATION_SCALES_features.pk", "HINDI_UNBIASED_ROTATION_SCALES_features.pk"]]
 
 	tests = [unbiased, unbiased_rotations, unbiased_scales, unbiased_rotation_scales]
-
-	if "CEDAR" in features_file:
-		dataset = "CEDAR"
-	elif "BENGALI" in features_file:
-		dataset = "Bengali"
-	elif "HINDI" in features_file:
-		dataset = "Hindi"
-
-	if "CEDAR" in classifier_path:
-		classifier = "CEDAR"
-	elif "BENGALI" in classifier_path:
-		classifier = "Bengali"
-	elif "HINDI" in classifier_path:
-		classifier = "Hindi"
 
 	base_datasets_dirs = 	{
 								"CEDAR_UNBIASED_features.pk": os.path.join(base_datasets_dir, "CEDAR"),
