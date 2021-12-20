@@ -49,6 +49,7 @@ def cross_dataset_validation(classifier_path, classifier, features_file, dataset
 def main(base_datasets_dir, logfile):
 	classifier_base_dir = "classifiers/all_samples_new"
 	features_base_dir = "features/all_samples_new"
+	pairs_base_dir = "pairs_files/all_samples"
 
 	unbiased = [["CEDAR_UNBIASED_clf.pk", "CEDAR_UNBIASED_features.pk", "BENGALI_UNBIASED_features.pk", "HINDI_UNBIASED_features.pk"],
 			["BENGALI_UNBIASED_clf.pk", "CEDAR_UNBIASED_features.pk", "BENGALI_UNBIASED_features.pk", "HINDI_UNBIASED_features.pk"],
@@ -88,7 +89,8 @@ def main(base_datasets_dir, logfile):
 			classifier_path = os.path.join(classifier_base_dir, data[0])
 			for feature in data[1:]:
 				features_path = os.path.join(features_base_dir, feature)
-				clf.cross_dataset_validation(classifier_path, features_path, pairs, base_datasets_dirs[feature], logfile)
+				pairs = os.path.join(pairs_base_dir, feature.replace("features.pk", "pairs.txt"))
+				cross_dataset_validation(classifier_path, features_path, pairs, base_datasets_dirs[feature], logfile)
 
 if __name__ == "__main__":
 	main()
