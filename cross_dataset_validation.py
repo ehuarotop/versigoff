@@ -9,7 +9,7 @@ import os
 
 seed = 1337
 
-def cross_dataset_validation(classifier_path, classifier, features_file, dataset, pairs_file, base_datasets_dir, logfile):
+def cross_dataset_validation(classifier_path, features_file, pairs_file, base_datasets_dir, logfile):
 
 	if "CEDAR" in features_file:
 		dataset = "CEDAR"
