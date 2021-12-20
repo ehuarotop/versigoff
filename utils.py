@@ -181,7 +181,7 @@ def perform_cross_validation(classifier, x_data, y_data, logfile="", cv=10):
 
 	# scores = cross_validate(classifier, x_data, y_data, cv=cv, scoring=scoring)
 	print("Initiating cross validation")
-	scores = cross_validate(classifier, x_data, y_data, cv=cv, scoring=scoring, n_jobs=cpus, verbose=2)
+	scores = cross_validate(classifier, x_data, y_data, cv=cv, scoring=scoring, n_jobs=2, verbose=2)
 
 	exec_time = time.time() - start_time
 	
