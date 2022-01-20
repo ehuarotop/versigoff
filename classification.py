@@ -37,7 +37,8 @@ def train(dataset, pairs_file, base_datasets_dir, features_file, save_classifier
 		imgs = None
 		#df = pickle.load(open(features_file, "rb"))
 
-	#Generating features
+	#Generating features (If want to use pca needs to pass extra parameter for generate_features in True)
+	#df = fg.generate_features(df, imgs, features_file, True)
 	df = fg.generate_features(df, imgs, features_file)
 	print("features generated")
 
