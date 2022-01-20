@@ -1,6 +1,10 @@
 import utils
 import pickle
 import classification
+import click
+import feature_generation as fg
+
+seed = 1337
 
 def dataset_score(dataset, classifier_path, features_file, pairs_file, base_datasets_dir, logfile):
 
@@ -38,7 +42,7 @@ def dataset_score(dataset, classifier_path, features_file, pairs_file, base_data
 	clf = pickle.load(open(classifier_path, "rb"))
 	scores = clf.score(x_data, y_data)"""
 
-	utils.writeToFile(logfile, "{}, {}, {}\n".format(classifier, dataset, scores))
+	utils.writeToFile(logfile, "{}, {}, {}\n".format(dataset, scores))
 
 @click.command()
 @click.option('--dataset', help="which dataset is being evaluated")
