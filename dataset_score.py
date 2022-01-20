@@ -3,24 +3,11 @@ import pickle
 import classification
 import click
 import feature_generation as fg
+import os
 
 seed = 1337
 
 def dataset_score(dataset, classifier_path, features_file, pairs_file, base_datasets_dir, logfile):
-
-	"""if "CEDAR" in features_file:
-		dataset = "CEDAR"
-	elif "BENGALI" in features_file:
-		dataset = "Bengali"
-	elif "HINDI" in features_file:
-		dataset = "Hindi"
-
-	if "CEDAR" in classifier_path:
-		classifier = "CEDAR"
-	elif "BENGALI" in classifier_path:
-		classifier = "Bengali"
-	elif "HINDI" in classifier_path:
-		classifier = "Hindi"""
 
 	#Getting related information to dataset
 	num_writers, gen_sig_per_writer, forg_sig_per_writer = utils.get_dataset_info(dataset)
@@ -34,15 +21,10 @@ def dataset_score(dataset, classifier_path, features_file, pairs_file, base_data
 
 	clf = pickle.load(open(classifier_path, "rb"))
 	scores = classification.score(df, clf)
-	
-	"""#Getting data for the classification task
-	x_data = np.stack([np.concatenate((vec[0], vec[1])) for vec in df.values])
-	y_data = df["label"].values
 
-	clf = pickle.load(open(classifier_path, "rb"))
-	scores = clf.score(x_data, y_data)"""
+	dataset_transform = os.path.basename(features_file).split("_features.pk")[0]
 
-	utils.writeToFile(logfile, "{}, {}, {}\n".format(dataset, scores))
+	utils.writeToFile(logfile, "{}, {}\n".format(dataset_transform, scores))
 
 @click.command()
 @click.option('--dataset', help="which dataset is being evaluated")
