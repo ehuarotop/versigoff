@@ -8,7 +8,7 @@ def main(n_samples):
 	if n_samples == "":
 		samples = "all"
 		transform = ""
-	if n_samples == "pca":
+	if n_samples == "new":
 		samples = "all"
 		transform = "_new"
 	else:

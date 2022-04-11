@@ -143,7 +143,7 @@ def custom_crop(image):
     return new_image
 
 def getImageCrops(filename):
-	print(filename)
+	#print(filename)
 
 	#Getting PIL image
 	img = Image.open(filename)
@@ -177,7 +177,7 @@ def getImageCrops(filename):
 	return [imgs[0], imgs[1], imgs[2]]
 
 def postProcessingCLIP(img1_filename):
-	print(img1_filename)
+	#print(img1_filename)
 	#Getting dataframe containing information only about the current filename
 	df_filename = df_clip_crops[df_clip_crops['imagepath'] == img1_filename]
 	#Getting clip features and converting it to np.array
@@ -307,11 +307,15 @@ def generate_features(df, imgs, features_file, pca=False):
 	if imgs is not None:
 		#Generating clip features
 		print("Generating CLIP features")
+		start_clip = time.time()
 		df_clip = generate_clip_features(imgs)
+		print("Clip feature generation takes {:.2f} seconds".format(time.time() - start_clip))
 
 		#Generating histograms (hancrafted features)
 		print("Generating histograms (hancrafted features)")
+		start_hists = time.time()
 		df_clip["histogram"] = df_clip.mapply(lambda x: generate_histograms(x["imagepath"]), axis=1)
+		print("Histograms feature generation takes {:.2f} seconds".format(time.time() - start_hists))
 		#Setting index to imagepath
 		df_clip = df_clip.set_index("imagepath")
 		#Saving dataframe with clip and handcrafted features generated
@@ -329,7 +333,9 @@ def generate_features(df, imgs, features_file, pca=False):
 
 	#Generating final features
 	print("Generating final features")
+	start_final = time.time()
 	df["clip_features"], df["handcrafted_features"] = df.mapply(lambda x: generate_final_features(x), axis=1, result_type="expand").T.values
+	print("Final feature generation takes {:.2f} seconds".format(time.time() - start_final))
 	#Freeing memory
 	df_clip = None
 	del df_clip
