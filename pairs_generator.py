@@ -29,6 +29,10 @@ def main(dataset, pairs_file, image_dir_genuine, image_dir_forgery, n_samples, t
 		if n_samples != "":
 			gen_sigs_per_writer = random.sample(list(range(1, gen_sig_per_writer+1)), (int)(n_samples))
 			forg_sigs_per_writer = random.sample(list(range(1, forg_sig_per_writer+1)), (int)(n_samples))
+
+			#uncomment to generate n_samples complement
+			#gen_sigs_per_writer = list(set(list(range(1, gen_sig_per_writer+1)))-set(gen_sigs_per_writer))
+			#forg_sigs_per_writer = list(set(list(range(1, forg_sig_per_writer+1)))-set(forg_sigs_per_writer))
 		else:
 			gen_sigs_per_writer = list(range(1, gen_sig_per_writer+1))
 			forg_sigs_per_writer = list(range(1, forg_sig_per_writer+1))
@@ -91,6 +95,10 @@ def main(dataset, pairs_file, image_dir_genuine, image_dir_forgery, n_samples, t
 		if n_samples != "":
 			gen_sigs_per_writer = random.sample(list(range(1, gen_sig_per_writer+1)), (int)(n_samples))
 			forg_sigs_per_writer = random.sample(list(range(1, forg_sig_per_writer+1)), (int)(n_samples))
+
+			#uncomment to generate n_samples complement
+			#gen_sigs_per_writer = list(set(list(range(1, gen_sig_per_writer+1)))-set(gen_sigs_per_writer))
+			#forg_sigs_per_writer = list(set(list(range(1, forg_sig_per_writer+1)))-set(forg_sigs_per_writer))
 		else:
 			gen_sigs_per_writer = list(range(1, gen_sig_per_writer+1))
 			forg_sigs_per_writer = list(range(1, forg_sig_per_writer+1))
@@ -194,6 +202,10 @@ def main(dataset, pairs_file, image_dir_genuine, image_dir_forgery, n_samples, t
 		if n_samples != "":
 			gen_sigs_per_writer = random.sample(list(range(1, gen_sig_per_writer+1)), (int)(n_samples))
 			forg_sigs_per_writer = random.sample(list(range(1, forg_sig_per_writer+1)), (int)(n_samples))
+			
+			#uncomment to generate n_samples complement
+			#gen_sigs_per_writer = list(set(list(range(1, gen_sig_per_writer+1)))-set(gen_sigs_per_writer))
+			#forg_sigs_per_writer = list(set(list(range(1, forg_sig_per_writer+1)))-set(forg_sigs_per_writer))
 		else:
 			gen_sigs_per_writer = list(range(1, gen_sig_per_writer+1))
 			forg_sigs_per_writer = list(range(1, forg_sig_per_writer+1))
